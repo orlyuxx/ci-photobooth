@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import SettingsModal from "./components/settings";
+import Navbar from "./components/navbar";
 
 // SparkleBurst effect
 function SparkleBurst({ duration = 1200 }) {
@@ -699,7 +701,19 @@ export default function Home() {
   const [showPhotobooth, setShowPhotobooth] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settings, setSettings] = useState({
+    numberOfPhotos: 4,
+    timerDuration: 3,
+  });
   const videoRef = useRef(null);
+
+  // Add states for capturing
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [countdown, setCountdown] = useState(null); // null or number
+  const [capturedImages, setCapturedImages] = useState([]);
+  const [showCaptureEffect, setShowCaptureEffect] = useState(false);
+  const [animatedPreviews, setAnimatedPreviews] = useState([]); // track which previews have animated
 
   // Add mounted state to prevent FOUC
   const [mounted, setMounted] = useState(false);
@@ -798,12 +812,155 @@ export default function Home() {
     setStep("photobooth");
   };
 
+  const handleSettingsOpen = () => {
+    setShowSettingsModal(true);
+  };
+
+  const handleSettingsClose = () => {
+    setShowSettingsModal(false);
+  };
+
+  const handleSettingsSave = (newSettings) => {
+    setSettings(newSettings);
+  };
+
   const previewImages = [
     "/images/maloi.jpg",
     "/images/maloi.jpg",
     "/images/maloi.jpg",
     "/images/maloi.jpg",
+    "/images/maloi.jpg",
+    "/images/maloi.jpg",
   ];
+
+  // Get the correct number of preview images based on settings
+  const displayImages =
+    capturedImages.length > 0
+      ? capturedImages.slice(0, settings.numberOfPhotos)
+      : previewImages.slice(0, settings.numberOfPhotos);
+
+  // Calculate grid layout based on number of photos
+  const getGridLayout = (count) => {
+    switch (count) {
+      case 3:
+        return "grid-cols-2 gap-x-8 gap-y-8";
+      case 4:
+        return "grid-cols-2 gap-x-8 gap-y-8";
+      case 6:
+        return "grid-cols-2 gap-x-6 gap-y-6";
+      default:
+        return "grid-cols-2 gap-x-8 gap-y-8";
+    }
+  };
+
+  // Get positioning classes based on index and total count
+  const getPositionClasses = (index, total) => {
+    if (total === 3) {
+      switch (index) {
+        case 0:
+          return "-rotate-3 -translate-y-1";
+        case 1:
+          return "rotate-2 translate-y-2";
+        case 2:
+          return "rotate-1 -translate-y-1 col-span-2 mx-auto";
+        default:
+          return "";
+      }
+    } else if (total === 4) {
+      switch (index) {
+        case 0:
+          return "-rotate-3 -translate-y-1";
+        case 1:
+          return "rotate-2 translate-y-2";
+        case 2:
+          return "rotate-1 -translate-y-1";
+        case 3:
+          return "-rotate-2 translate-y-1";
+        default:
+          return "";
+      }
+    } else if (total === 6) {
+      switch (index) {
+        case 0:
+          return "-rotate-2 -translate-y-1";
+        case 1:
+          return "rotate-1 translate-y-1";
+        case 2:
+          return "-rotate-1 translate-y-2";
+        case 3:
+          return "rotate-2 -translate-y-1";
+        case 4:
+          return "-rotate-1 translate-y-1";
+        case 5:
+          return "rotate-1 -translate-y-2";
+        default:
+          return "";
+      }
+    }
+    return "";
+  };
+
+  // Capture logic
+  const handleCapture = async () => {
+    if (!cameraActive || !videoRef.current) return;
+    setIsCapturing(true);
+    setCapturedImages([]);
+    setAnimatedPreviews([]);
+    const images = [];
+    for (let i = 0; i < settings.numberOfPhotos; i++) {
+      // Countdown
+      for (let t = settings.timerDuration; t > 0; t--) {
+        setCountdown(t);
+        await new Promise((res) => setTimeout(res, 1000));
+      }
+      setCountdown(null);
+      // Capture frame
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      // Mirror horizontally to match preview
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      images.push(dataUrl);
+      setCapturedImages((prev) => [...prev, dataUrl]);
+      setShowCaptureEffect(true);
+      setTimeout(() => setShowCaptureEffect(false), 250); // flash duration
+      setTimeout(() => {
+        setAnimatedPreviews((prev) => [...prev, i]);
+      }, 100); // trigger preview animation after capture
+      // Small pause between shots (optional)
+      if (i < settings.numberOfPhotos - 1) {
+        await new Promise((res) => setTimeout(res, 500));
+      }
+    }
+    setIsCapturing(false);
+  };
+
+  // Animate in new preview images elegantly
+  useEffect(() => {
+    if (capturedImages.length > 0) {
+      // Only animate in the newly added image
+      const lastIdx = capturedImages.length - 1;
+      const key = capturedImages[lastIdx] + "-" + lastIdx;
+      if (!animatedPreviews.includes(key)) {
+        setTimeout(() => {
+          setAnimatedPreviews((prev) => [...prev, key]);
+        }, 80); // slight delay for entrance effect
+      }
+    }
+  }, [capturedImages]);
+
+  // Retake logic
+  const canRetake =
+    capturedImages.length === settings.numberOfPhotos && !isCapturing;
+  const handleRetake = () => {
+    setCapturedImages([]);
+    setAnimatedPreviews([]);
+  };
 
   return (
     <div
@@ -960,9 +1117,18 @@ export default function Home() {
                 : "opacity-0 translate-y-8"
             }`}
           >
-            <h1 className="text-5xl font-extrabold text-black lilita-one text-center drop-shadow-lg">
-              CI's Photobooth
-            </h1>
+            <div className="flex flex-row items-center gap-4 group">
+              <img
+                src="/images/photobooth-logo.png"
+                alt="Photobooth Logo"
+                width={50}
+                height={50}
+                className="rounded-xl shadow-md object-contain bg-white"
+              />
+              <h1 className="text-5xl font-extrabold text-black lilita-one text-center drop-shadow-lg">
+                Snappy
+              </h1>
+            </div>
             <h2
               className="text-lg font-medium text-center text-purple-500 mt-2"
               style={{ letterSpacing: 0.2 }}
@@ -974,7 +1140,7 @@ export default function Home() {
           <div className="flex flex-row w-full max-w-6xl mx-auto my-8 items-start justify-between px-12">
             {/* Left: Camera Preview */}
             <div
-              className={`flex-1 mr-6 pr-4 flex-col items-start justify-center transition-all duration-700${
+              className={`-mt-8 flex-1 mr-6 pr-4 flex-col items-start justify-center transition-all duration-700${
                 showPhotobooth
                   ? " opacity-100 translate-y-0"
                   : " opacity-0 translate-y-8"
@@ -987,8 +1153,8 @@ export default function Home() {
                     : " opacity-0 translate-y-8"
                 }`}
                 style={{
-                  width: 450,
-                  height: 400,
+                  width: 500,
+                  height: 450,
                   transitionDelay: "200ms",
                 }}
               >
@@ -997,15 +1163,33 @@ export default function Home() {
                   style={{ boxShadow: "0 8px 32px 0 rgba(0,0,0,0.18)" }}
                 >
                   {/* Polaroid photo area - less top margin, more bottom margin */}
-                  <div className="w-[90%] h-[80%] bg-gray-200 flex items-center justify-center mt-4 mb-6 overflow-hidden">
+                  <div
+                    className="w-[90%] h-[85%] bg-gray-200 flex items-center justify-center mt-4 mb-6 overflow-hidden"
+                    style={{ position: "relative" }}
+                  >
                     {cameraActive ? (
-                      <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className="w-full h-full object-cover rounded-t-md scale-x-[-1]"
-                      />
+                      <>
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className="w-full h-full object-cover scale-x-[-1]"
+                        />
+                        {countdown !== null && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
+                            <span className="text-white text-5xl font-bold drop-shadow-lg animate-pulse">
+                              {countdown}
+                            </span>
+                          </div>
+                        )}
+                        {showCaptureEffect && (
+                          <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
+                            <ConfettiBurst duration={700} />
+                            <div className="absolute inset-0 bg-white opacity-40 animate-capture-flash" />
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <span className="text-7xl text-gray-400">📷</span>
                     )}
@@ -1015,7 +1199,7 @@ export default function Home() {
             </div>
             {/* Right: Preview Images */}
             <div
-              className={`flex-1 flex flex-col items-end justify-center mt-2 transition-all duration-700 ${
+              className={`-mt-2 flex-1 flex flex-col items-end justify-center transition-all duration-700 ${
                 showPhotobooth
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
@@ -1027,94 +1211,58 @@ export default function Home() {
                   Preview
                 </h3>
               </div> */}
-              <div className="grid grid-cols-2 gap-x-8 gap-y-8 pt-6 pl-12">
-                {previewImages.map((src, idx) => (
-                  <div
-                    key={idx}
-                    className={
-                      `relative w-56 h-40 bg-white flex items-center justify-center shadow-xl border-4 border-white photobooth-img-entrance ` +
-                      (idx === 0 ? "-rotate-3 -translate-y-1" : "") +
-                      (idx === 1 ? "rotate-2 translate-y-2" : "") +
-                      (idx === 2 ? "rotate-1 -translate-y-1" : "") +
-                      (idx === 3 ? "-rotate-2 translate-y-1" : "")
-                    }
-                    style={{
-                      overflow: "hidden",
-                      opacity: showPhotobooth ? 1 : 0,
-                      transform: showPhotobooth
-                        ? "translateY(0)"
-                        : "translateY(32px)",
-                      transition: `all 0.7s cubic-bezier(0.4,0,0.2,1)`,
-                      transitionDelay: `${350 + idx * 120}ms`,
-                    }}
-                  >
-                    <img
-                      src={src}
-                      alt={`Preview ${idx + 1}`}
-                      className="object-cover w-full h-full"
-                      style={{ filter: "brightness(1.05) contrast(1.05)" }}
-                    />
-                  </div>
-                ))}
+              <div
+                className={`grid ${getGridLayout(settings.numberOfPhotos)} ${
+                  settings.numberOfPhotos === 6 ? "-mt-6" : "pt-6"
+                } pl-12`}
+              >
+                {displayImages.map((src, idx) => {
+                  const key = src + "-" + idx;
+                  return (
+                    <div
+                      key={key}
+                      className={
+                        `relative bg-white flex items-center justify-center shadow-xl border-4 border-white ${
+                          settings.numberOfPhotos === 6
+                            ? "w-48 h-36"
+                            : "w-56 h-40"
+                        } ` +
+                        getPositionClasses(idx, settings.numberOfPhotos) +
+                        (animatedPreviews.includes(key)
+                          ? " preview-elegant-in"
+                          : "")
+                      }
+                      style={{
+                        overflow: "hidden",
+                        opacity: 1,
+                        transform: "translateY(0)",
+                        transition: "none",
+                        animationDelay: animatedPreviews.includes(key)
+                          ? `${idx * 0.12}s`
+                          : undefined,
+                      }}
+                    >
+                      <img
+                        src={src}
+                        alt={`Preview ${idx + 1}`}
+                        className="object-cover w-full h-full"
+                        style={{ filter: "brightness(1.05) contrast(1.05)" }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
-          {/* Mini Navbar at the bottom center */}
-          <div
-            className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center transition-all duration-700 ${
-              showPhotobooth
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
-            }`}
-            style={{ transitionDelay: "400ms" }}
-          >
-            <div className="mini-navbar-animate flex bg-white/80 backdrop-blur-lg rounded-xl shadow-xl px-2 py-1 gap-1 border border-white/60 transition-all duration-200">
-              {/* Settings */}
-              <button
-                className="mini-nav-btn"
-                aria-label="Settings"
-                type="button"
-              >
-                <span className="bg-gray-200 rounded-full flex items-center justify-center p-1.5">
-                  <img
-                    src="/images/setting.png"
-                    alt="Settings"
-                    className="w-5 h-5"
-                  />
-                </span>
-              </button>
-              {/* Camera/Capture */}
-              <button
-                className="mini-nav-btn"
-                aria-label="Capture"
-                type="button"
-              >
-                <span className="bg-gradient-to-tr from-pink-400 via-blue-400 to-purple-400 rounded-full flex items-center justify-center p-1.5 shadow-md transition-colors duration-200">
-                  <img
-                    src="/images/camera.png"
-                    alt="Capture"
-                    className="w-5 h-5"
-                    style={{ filter: "brightness(0) invert(1)" }}
-                  />
-                </span>
-              </button>
-              {/* Print (disabled) */}
-              <button
-                className="mini-nav-btn mini-nav-btn-disabled"
-                aria-label="Print"
-                type="button"
-                disabled
-              >
-                <span className="bg-gray-200 rounded-full flex items-center justify-center p-1.5">
-                  <img
-                    src="/images/printer.png"
-                    alt="Print"
-                    className="w-5 h-5"
-                  />
-                </span>
-              </button>
-            </div>
-          </div>
+          {/* Mini Navbar */}
+          <Navbar
+            showPhotobooth={showPhotobooth}
+            onSettingsOpen={handleSettingsOpen}
+            onCapture={handleCapture}
+            isCapturing={isCapturing}
+            canRetake={canRetake}
+            onRetake={handleRetake}
+          />
         </>
       )}
       {/* Full-screen loading overlay: always on top, never hides content */}
@@ -1220,35 +1368,7 @@ export default function Home() {
             transform: scale(1) rotate(0deg);
           }
         }
-        .mini-nav-btn {
-          background: transparent;
-          border: none;
-          outline: none;
-          border-radius: 9999px;
-          padding: 0.5rem 0.9rem;
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          cursor: pointer;
-          box-shadow: none;
-          position: relative;
-        }
-        .mini-navbar-animate {
-          transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-            box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .mini-navbar-animate:hover {
-          transform: scale(1.08);
-          box-shadow: 0 8px 32px 0 rgba(168, 139, 250, 0.18);
-        }
-        .mini-nav-btn:not(.mini-nav-btn-disabled):hover {
-          background: rgba(168, 139, 250, 0.18);
-          box-shadow: 0 4px 16px 0 rgba(168, 139, 250, 0.18);
-          transform: scale(1.13) translateY(-1px);
-        }
-        .mini-nav-btn-disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          pointer-events: none;
-        }
+
         .draggable-svg {
           transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -1282,7 +1402,55 @@ export default function Home() {
         .draggable-svg-trail {
           transition: opacity 0.5s ease-in-out;
         }
+        .animate-capture-flash {
+          animation: capture-flash 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes capture-flash {
+          0% {
+            opacity: 0.8;
+          }
+          80% {
+            opacity: 0.8;
+          }
+          100% {
+            opacity: 0;
+          }
+        }
+        .preview-elegant-in {
+          animation: preview-elegant-in 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+          z-index: 1;
+        }
+        @keyframes preview-elegant-in {
+          0% {
+            opacity: 0;
+            transform: scale(0.7) translateY(40px);
+            box-shadow: 0 8px 32px 0 rgba(168, 139, 250, 0.18);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.08) translateY(-8px);
+            box-shadow: 0 8px 32px 0 rgba(236, 72, 153, 0.18);
+          }
+          80% {
+            opacity: 1;
+            transform: scale(0.97) translateY(2px);
+            box-shadow: 0 4px 16px 0 rgba(168, 139, 250, 0.12);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            box-shadow: none;
+          }
+        }
       `}</style>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={handleSettingsClose}
+        onSave={handleSettingsSave}
+        currentSettings={settings}
+      />
     </div>
   );
 }
