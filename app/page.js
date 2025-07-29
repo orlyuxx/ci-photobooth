@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import SettingsModal from "./components/settings";
 import Navbar from "./components/navbar";
+import Frames from "./components/frames";
+import Filters from "./components/filters";
 
 // SparkleBurst effect
 function SparkleBurst({ duration = 1200 }) {
@@ -961,6 +963,13 @@ export default function Home() {
     setCapturedImages([]);
     setAnimatedPreviews([]);
   };
+  const handlePrint = () => {
+    if (canRetake) {
+      setStep("editor");
+    }
+  };
+
+  const [selectedFrame, setSelectedFrame] = useState("classic");
 
   return (
     <div
@@ -1053,7 +1062,7 @@ export default function Home() {
         </>
       )}
       {/* Welcome Card: always render unless in photobooth */}
-      {mounted && step !== "photobooth" && (
+      {mounted && step !== "photobooth" && step !== "editor" && (
         <div className="flex flex-col items-center justify-center gap-4 mt-16 mb-8 w-full max-w-md mx-auto">
           <div className="flex flex-row items-center gap-4 group">
             <img
@@ -1262,8 +1271,140 @@ export default function Home() {
             isCapturing={isCapturing}
             canRetake={canRetake}
             onRetake={handleRetake}
+            onPrint={handlePrint}
           />
         </>
+      )}
+      {/* Editor Step: Photo Strip Editor */}
+      {step === "editor" && (
+        <div className="w-full max-w-6xl mx-auto flex flex-col items-center mt-12 mb-8 transition-all duration-700">
+          {/* Logo and Title */}
+          <div className="flex flex-row items-center gap-4 mb-4">
+            <img
+              src="/images/photobooth-logo.png"
+              alt="Photobooth Logo"
+              width={50}
+              height={50}
+              className="rounded-xl shadow-md object-contain bg-white"
+            />
+            <h1 className="text-5xl font-extrabold text-black lilita-one text-center drop-shadow-lg">
+              Snappy
+            </h1>
+          </div>
+          {/* Main Editor Layout */}
+          <div className="flex flex-row w-full items-start justify-end px-12 mt-8">
+            {/* Left: Photo Strip */}
+            <div
+              className="flex flex-col items-center justify-center mr-60"
+              style={{ minWidth: 320 }}
+            >
+              <div
+                className={`shadow-2xl flex flex-col items-center justify-center py-6 px-4 relative`}
+                style={{
+                  minHeight: 560,
+                  minWidth: 100,
+                  borderRadius: selectedFrame === "modern" ? 24 : 0,
+                  background: selectedFrame === "film" ? "#111" : "#fff",
+                  border: "none",
+                }}
+              >
+                {/* Sprocket holes for film frame */}
+                {selectedFrame === "film" && (
+                  <>
+                    {/* Left sprocket holes - rectangular, minimal border radius */}
+                    <div
+                      className="absolute left-0 top-0 bottom-0 flex flex-col justify-between z-10"
+                      style={{ height: "100%", gap: 0 }}
+                    >
+                      {Array.from({ length: 18 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className="block w-2 h-3 rounded-[2px] bg-white my-[6px]"
+                        />
+                      ))}
+                    </div>
+                    {/* Right sprocket holes - rectangular, minimal border radius */}
+                    <div
+                      className="absolute right-0 top-0 bottom-0 flex flex-col justify-between z-10"
+                      style={{ height: "100%", gap: 0 }}
+                    >
+                      {Array.from({ length: 18 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className="block w-2 h-3 rounded-[2px] bg-white my-[6px]"
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+                {/* Photo strip: vertical stack of captured images with gaps */}
+                {capturedImages.length > 0 ? (
+                  <div
+                    className="flex flex-col items-center"
+                    style={{ width: "auto", position: "relative", zIndex: 20 }}
+                  >
+                    {capturedImages.map((src, idx) => {
+                      let imgStyle = {
+                        borderRadius: 0,
+                        background: "#eee",
+                        display: "block",
+                        border: "none",
+                        boxShadow: "none",
+                      };
+                      let imgClass = `object-cover w-56 h-40 ${
+                        idx !== capturedImages.length - 1 ? "mb-4" : ""
+                      }`;
+                      if (selectedFrame === "film") {
+                        imgStyle = {
+                          ...imgStyle,
+                          border: "4px solid #fff",
+                          boxShadow: "0 2px 8px 0 rgba(0,0,0,0.18)",
+                        };
+                      } else if (selectedFrame === "modern") {
+                        imgStyle = {
+                          ...imgStyle,
+                          borderRadius: 16,
+                          border: "2px solid #e5e7eb",
+                          boxShadow: "0 4px 16px 0 rgba(0,0,0,0.10)",
+                        };
+                      }
+                      return (
+                        <img
+                          key={src + idx}
+                          src={src}
+                          alt={`Strip ${idx + 1}`}
+                          className={imgClass}
+                          style={imgStyle}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-gray-400 text-2xl">No photos</div>
+                )}
+              </div>
+            </div>
+            {/* Right: Cards (Frames & Filters side by side) */}
+            <div className="flex flex-row items-start gap-8 -mr-44">
+              <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
+                <Frames selected={selectedFrame} onChange={setSelectedFrame} />
+              </div>
+              <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
+                <Filters />
+              </div>
+            </div>
+          </div>
+          {/* Show Navbar in editor step */}
+          <Navbar
+            showPhotobooth={true}
+            onSettingsOpen={handleSettingsOpen}
+            onCapture={handleCapture}
+            isCapturing={isCapturing}
+            canRetake={canRetake}
+            onRetake={handleRetake}
+            onPrint={handlePrint}
+          />
+        </div>
       )}
       {/* Full-screen loading overlay: always on top, never hides content */}
       {false && step === "loading" && (

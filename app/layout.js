@@ -14,7 +14,7 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "CI's Photobooth",
+  title: "Snappy",
   description: "Pose and capture your cute moments!",
 };
 
@@ -22,12 +22,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <link
-          rel="icon"
-          href="/images/photobooth-logo.ico"
-          type="image/x-icon"
-        />
-        <link rel="icon" href="/images/photobooth-logo.png" type="image/png" />
+        <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+        <link rel="icon" href="/images/favicon.png" type="image/png" />
       </head>
       <body className={`${lilitaOne.variable} ${poppins.variable} antialiased`}>
         {children}

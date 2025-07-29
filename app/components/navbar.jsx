@@ -9,6 +9,7 @@ const Navbar = ({
   isCapturing,
   canRetake,
   onRetake,
+  onPrint,
 }) => {
   return (
     <div
@@ -70,12 +71,15 @@ const Navbar = ({
             </span>
           </button>
         )}
-        {/* Print (disabled) */}
+        {/* Print (enabled after photos taken) */}
         <button
-          className="mini-nav-btn mini-nav-btn-disabled"
+          className={`mini-nav-btn${canRetake ? "" : " mini-nav-btn-disabled"}`}
           aria-label="Print"
           type="button"
-          disabled
+          disabled={!canRetake}
+          onClick={
+            canRetake && typeof onPrint === "function" ? onPrint : undefined
+          }
         >
           <span className="bg-gray-200 rounded-full flex items-center justify-center p-1.5">
             <img src="/images/printer.png" alt="Print" className="w-5 h-5" />
