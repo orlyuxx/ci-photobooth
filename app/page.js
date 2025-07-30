@@ -971,6 +971,11 @@ export default function Home() {
 
   const [selectedFrame, setSelectedFrame] = useState("classic");
   const [selectedFilter, setSelectedFilter] = useState("none");
+  const [customFrameSettings, setCustomFrameSettings] = useState({
+    borderColor: "#000000",
+    backgroundColor: "#ffffff",
+    cornerRadius: "none",
+  });
 
   // Function to get CSS filter based on selected filter
   const getFilterStyle = (filterType) => {
@@ -990,6 +995,43 @@ export default function Home() {
       case "none":
       default:
         return {};
+    }
+  };
+
+  // Function to get frame styles based on selected frame and custom settings
+  const getFrameStyle = (frameType, customSettings = {}) => {
+    switch (frameType) {
+      case "classic":
+        return {
+          background: "#fff",
+          border: "none",
+          borderRadius: 0,
+        };
+      case "film":
+        return {
+          background: "#111",
+          border: "none",
+          borderRadius: 0,
+        };
+      case "modern":
+        return {
+          background: "#fff",
+          border: "2px solid #000",
+          borderRadius: 4, // smaller radius for the strip
+        };
+      case "custom":
+        // For the custom frame, the strip container should have no border radius
+        return {
+          background: customSettings.backgroundColor || "white",
+          border: `2px solid ${customSettings.borderColor || "black"}`,
+          borderRadius: 0,
+        };
+      default:
+        return {
+          background: "#fff",
+          border: "none",
+          borderRadius: 0,
+        };
     }
   };
 
@@ -1325,9 +1367,7 @@ export default function Home() {
                 style={{
                   minHeight: 560,
                   minWidth: 100,
-                  borderRadius: selectedFrame === "modern" ? 24 : 0,
-                  background: selectedFrame === "film" ? "#111" : "#fff",
-                  border: "none",
+                  ...getFrameStyle(selectedFrame, customFrameSettings),
                 }}
               >
                 {/* Sprocket holes for film frame */}
@@ -1385,9 +1425,24 @@ export default function Home() {
                       } else if (selectedFrame === "modern") {
                         imgStyle = {
                           ...imgStyle,
-                          borderRadius: 16,
+                          borderRadius: 4, // smaller radius for the photo
                           border: "2px solid #e5e7eb",
                           boxShadow: "0 4px 16px 0 rgba(0,0,0,0.10)",
+                        };
+                      } else if (selectedFrame === "custom") {
+                        const cornerRadiusMap = {
+                          none: 0,
+                          sm: 4,
+                          md: 8,
+                          lg: 12,
+                          xl: 16,
+                        };
+                        imgStyle = {
+                          ...imgStyle,
+                          borderRadius:
+                            cornerRadiusMap[
+                              customFrameSettings.cornerRadius || "none"
+                            ],
                         };
                       }
                       return (
@@ -1412,12 +1467,18 @@ export default function Home() {
             {/* Right: Cards (Frames & Filters side by side) */}
             <div className="flex flex-row items-start gap-8 -mr-44">
               <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
-                <Frames selected={selectedFrame} onChange={setSelectedFrame} />
+                <Frames
+                  selected={selectedFrame}
+                  onChange={setSelectedFrame}
+                  customSettings={customFrameSettings}
+                  onCustomSettingsChange={setCustomFrameSettings}
+                />
               </div>
               <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
                 <Filters
                   selected={selectedFilter}
                   onChange={setSelectedFilter}
+                  className="justify-start"
                 />
               </div>
             </div>

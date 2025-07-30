@@ -1,8 +1,14 @@
 import React from "react";
 
-export default function Filters({ selected = "none", onChange = () => {} }) {
+export default function Filters({
+  selected = "none",
+  onChange = () => {},
+  className = "",
+}) {
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center">
+    <div
+      className={`w-full h-full flex flex-col items-center justify-center ${className}`}
+    >
       <span className="text-md font-bold text-black -mt-4 mb-6 text-center">
         Filters
       </span>

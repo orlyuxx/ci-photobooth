@@ -1,6 +1,40 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { HexColorPicker } from "react-colorful";
 
-export default function Frames({ selected = "classic", onChange = () => {} }) {
+export default function Frames({
+  selected = "classic",
+  onChange = () => {},
+  customSettings = {},
+  onCustomSettingsChange = () => {},
+}) {
+  const [showBorderColorPicker, setShowBorderColorPicker] = useState(false);
+  const [showBackgroundColorPicker, setShowBackgroundColorPicker] =
+    useState(false);
+  const borderColorRef = useRef(null);
+  const backgroundColorRef = useRef(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        borderColorRef.current &&
+        !borderColorRef.current.contains(event.target)
+      ) {
+        setShowBorderColorPicker(false);
+      }
+      if (
+        backgroundColorRef.current &&
+        !backgroundColorRef.current.contains(event.target)
+      ) {
+        setShowBackgroundColorPicker(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   return (
     <div className="w-full h-full flex flex-col items-center justify-center">
       <span className="text-md font-bold text-black -mt-4 mb-6 text-center">
@@ -47,8 +81,153 @@ export default function Frames({ selected = "classic", onChange = () => {} }) {
         >
           Custom
         </button>
-        <div className="w-32 h-10"></div>
-        <div className="w-32 h-10"></div>
+        {/* Replace the two invisible divs with Custom Options if custom is selected */}
+        {selected === "custom" ? (
+          <div className="col-span-2 w-full">
+            {/* Custom Options start here */}
+            <div className="w-full max-w-lg">
+              {/* Border Color & Background Color side by side */}
+              <div className="mb-3 flex flex-row gap-6 items-end w-full">
+                {/* Border Color */}
+                <div className="flex flex-col flex-1">
+                  <span className="text-xs font-medium text-gray-600 mb-1 block">
+                    Border Color
+                  </span>
+                  <div className="relative" ref={borderColorRef}>
+                    <button
+                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600"
+                      style={{
+                        backgroundColor: customSettings.borderColor || "black",
+                        backgroundImage:
+                          (
+                            customSettings.borderColor || "#000000"
+                          ).toLowerCase() === "#ffffff"
+                            ? "linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee)"
+                            : "none",
+                        backgroundSize: "8px 8px",
+                        backgroundPosition: "0 0, 4px 4px",
+                      }}
+                      onClick={() => {
+                        setShowBorderColorPicker((prev) => {
+                          if (!prev) setShowBackgroundColorPicker(false);
+                          return !prev;
+                        });
+                      }}
+                    />
+                    {showBorderColorPicker && (
+                      <div className="absolute top-full left-0 mt-2 z-20 bg-white p-3 rounded shadow-lg border border-gray-300">
+                        <HexColorPicker
+                          color={customSettings.borderColor || "#000000"}
+                          onChange={(color) =>
+                            onCustomSettingsChange({
+                              ...customSettings,
+                              borderColor: color,
+                            })
+                          }
+                        />
+                        <div className="flex justify-end mt-2">
+                          <button
+                            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
+                            onClick={() => setShowBorderColorPicker(false)}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Background Color */}
+                <div className="flex flex-col flex-1">
+                  <span className="text-xs font-medium text-gray-600 mb-1 block">
+                    Background Color
+                  </span>
+                  <div className="relative" ref={backgroundColorRef}>
+                    <button
+                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600"
+                      style={{
+                        backgroundColor:
+                          customSettings.backgroundColor || "white",
+                        backgroundImage:
+                          (
+                            customSettings.backgroundColor || "#ffffff"
+                          ).toLowerCase() === "#ffffff"
+                            ? "linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee)"
+                            : "none",
+                        backgroundSize: "8px 8px",
+                        backgroundPosition: "0 0, 4px 4px",
+                      }}
+                      onClick={() => {
+                        setShowBackgroundColorPicker((prev) => {
+                          if (!prev) setShowBorderColorPicker(false);
+                          return !prev;
+                        });
+                      }}
+                    />
+                    {showBackgroundColorPicker && (
+                      <div className="absolute top-full left-0 mt-2 z-20 bg-white p-3 rounded shadow-lg border border-gray-300">
+                        <HexColorPicker
+                          color={customSettings.backgroundColor || "#ffffff"}
+                          onChange={(color) =>
+                            onCustomSettingsChange({
+                              ...customSettings,
+                              backgroundColor: color,
+                            })
+                          }
+                        />
+                        <div className="flex justify-end mt-2">
+                          <button
+                            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
+                            onClick={() => setShowBackgroundColorPicker(false)}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* Photo Rounded Corners */}
+              <div className="mb-2">
+                <span className="text-xs font-medium text-gray-600 mb-1 block">
+                  Photo Rounded Corners
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: "none", label: "None" },
+                    { value: "sm", label: "Small" },
+                    { value: "md", label: "Medium" },
+                    { value: "lg", label: "Large" },
+                    { value: "xl", label: "Extra" },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      className={`px-1.5 py-1 text-xs font-medium border transition-all hover:cursor-pointer ${
+                        customSettings.cornerRadius === option.value
+                          ? "bg-black text-white border-black"
+                          : "bg-white text-black border-black hover:bg-gray-100"
+                      }`}
+                      onClick={() =>
+                        onCustomSettingsChange({
+                          ...customSettings,
+                          cornerRadius: option.value,
+                        })
+                      }
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="w-32 h-10"></div>
+            <div className="w-32 h-10"></div>
+          </>
+        )}
       </div>
     </div>
   );
