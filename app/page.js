@@ -970,6 +970,28 @@ export default function Home() {
   };
 
   const [selectedFrame, setSelectedFrame] = useState("classic");
+  const [selectedFilter, setSelectedFilter] = useState("none");
+
+  // Function to get CSS filter based on selected filter
+  const getFilterStyle = (filterType) => {
+    switch (filterType) {
+      case "grayscale":
+        return { filter: "grayscale(100%)" };
+      case "brightness":
+        return { filter: "brightness(1.3) contrast(1.1)" };
+      case "contrast":
+        return { filter: "contrast(1.5) brightness(1.1)" };
+      case "sepia":
+        return { filter: "sepia(80%)" };
+      case "vintage":
+        return {
+          filter: "sepia(40%) brightness(1.1) contrast(1.2) saturate(1.3)",
+        };
+      case "none":
+      default:
+        return {};
+    }
+  };
 
   return (
     <div
@@ -1374,7 +1396,10 @@ export default function Home() {
                           src={src}
                           alt={`Strip ${idx + 1}`}
                           className={imgClass}
-                          style={imgStyle}
+                          style={{
+                            ...imgStyle,
+                            ...getFilterStyle(selectedFilter),
+                          }}
                         />
                       );
                     })}
@@ -1390,7 +1415,10 @@ export default function Home() {
                 <Frames selected={selectedFrame} onChange={setSelectedFrame} />
               </div>
               <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
-                <Filters />
+                <Filters
+                  selected={selectedFilter}
+                  onChange={setSelectedFilter}
+                />
               </div>
             </div>
           </div>

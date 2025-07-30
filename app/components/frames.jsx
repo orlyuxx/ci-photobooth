@@ -47,6 +47,8 @@ export default function Frames({ selected = "classic", onChange = () => {} }) {
         >
           Custom
         </button>
+        <div className="w-32 h-10"></div>
+        <div className="w-32 h-10"></div>
       </div>
     </div>
   );

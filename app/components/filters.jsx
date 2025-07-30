@@ -13,7 +13,7 @@ export default function Filters({ selected = "none", onChange = () => {} }) {
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
           }`}
-          // onClick={() => onChange("none")}
+          onClick={() => onChange("none")}
         >
           None
         </button>
@@ -23,7 +23,7 @@ export default function Filters({ selected = "none", onChange = () => {} }) {
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
           }`}
-          // onClick={() => onChange("grayscale")}
+          onClick={() => onChange("grayscale")}
         >
           Grayscale
         </button>
@@ -33,7 +33,7 @@ export default function Filters({ selected = "none", onChange = () => {} }) {
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
           }`}
-          // onClick={() => onChange("brightness")}
+          onClick={() => onChange("brightness")}
         >
           Brightness
         </button>
@@ -43,7 +43,7 @@ export default function Filters({ selected = "none", onChange = () => {} }) {
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
           }`}
-          // onClick={() => onChange("contrast")}
+          onClick={() => onChange("contrast")}
         >
           Contrast
         </button>
@@ -53,19 +53,19 @@ export default function Filters({ selected = "none", onChange = () => {} }) {
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
           }`}
-          // onClick={() => onChange("sepia")}
+          onClick={() => onChange("sepia")}
         >
           Sepia
         </button>
         <button
           className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
-            selected === "invert"
+            selected === "vintage"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
           }`}
-          // onClick={() => onChange("invert")}
+          onClick={() => onChange("vintage")}
         >
-          Invert
+          Vintage
         </button>
       </div>
     </div>
