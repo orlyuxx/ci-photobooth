@@ -5,6 +5,7 @@ import SettingsModal from "./components/settings";
 import Navbar from "./components/navbar";
 import Frames from "./components/frames";
 import Filters from "./components/filters";
+import Stickers from "./components/stickers";
 
 // SparkleBurst effect
 function SparkleBurst({ duration = 1200 }) {
@@ -962,6 +963,7 @@ export default function Home() {
   const handleRetake = () => {
     setCapturedImages([]);
     setAnimatedPreviews([]);
+    setPlacedStickers([]);
   };
   const handlePrint = () => {
     if (canRetake) {
@@ -971,6 +973,8 @@ export default function Home() {
 
   const [selectedFrame, setSelectedFrame] = useState("classic");
   const [selectedFilter, setSelectedFilter] = useState("none");
+  const [selectedSticker, setSelectedSticker] = useState(null);
+  const [placedStickers, setPlacedStickers] = useState([]);
   const [customFrameSettings, setCustomFrameSettings] = useState({
     borderColor: "#000000",
     backgroundColor: "#ffffff",
@@ -1033,6 +1037,43 @@ export default function Home() {
           borderRadius: 0,
         };
     }
+  };
+
+  // Function to handle sticker placement
+  const handleStickerPlacement = (photoIndex, event) => {
+    if (!selectedSticker) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const newSticker = {
+      id: Date.now() + Math.random(),
+      stickerId: selectedSticker,
+      photoIndex: photoIndex,
+      x: x,
+      y: y,
+    };
+
+    setPlacedStickers((prev) => [...prev, newSticker]);
+    setSelectedSticker(null); // Clear selection after placement
+  };
+
+  // Function to remove sticker
+  const removeSticker = (stickerId) => {
+    setPlacedStickers((prev) =>
+      prev.filter((sticker) => sticker.id !== stickerId)
+    );
+  };
+
+  // Function to undo last placed sticker
+  const handleUndo = () => {
+    setPlacedStickers((prev) => {
+      if (prev.length > 0) {
+        return prev.slice(0, -1); // Remove the last placed sticker
+      }
+      return prev;
+    });
   };
 
   return (
@@ -1402,9 +1443,60 @@ export default function Home() {
                 {/* Photo strip: vertical stack of captured images with gaps */}
                 {capturedImages.length > 0 ? (
                   <div
-                    className="flex flex-col items-center"
-                    style={{ width: "auto", position: "relative", zIndex: 20 }}
+                    className="flex flex-col items-center photostrip-container"
+                    style={{
+                      width: "auto",
+                      position: "relative",
+                      zIndex: 20,
+                      outline: "none",
+                      border: "none",
+                    }}
+                    onClick={(e) => {
+                      if (selectedSticker) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        const newSticker = {
+                          id: Date.now(),
+                          stickerId: selectedSticker,
+                          photoIndex: -1, // -1 means placed on the strip itself
+                          x: x,
+                          y: y,
+                        };
+
+                        setPlacedStickers((prev) => [...prev, newSticker]);
+                        setSelectedSticker(null);
+                      }
+                    }}
+                    onMouseDown={(e) => {
+                      if (selectedSticker) {
+                        // Allow the click to bubble up to the parent
+                        e.stopPropagation();
+                      }
+                    }}
                   >
+                    {selectedSticker && (
+                      <div
+                        className="absolute inset-0 pointer-events-auto z-10"
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = e.clientX - rect.left;
+                          const y = e.clientY - rect.top;
+
+                          const newSticker = {
+                            id: Date.now() + Math.random(),
+                            stickerId: selectedSticker,
+                            photoIndex: -1,
+                            x: x,
+                            y: y,
+                          };
+
+                          setPlacedStickers((prev) => [...prev, newSticker]);
+                          setSelectedSticker(null);
+                        }}
+                      />
+                    )}
                     {capturedImages.map((src, idx) => {
                       let imgStyle = {
                         borderRadius: 0,
@@ -1445,41 +1537,165 @@ export default function Home() {
                             ],
                         };
                       }
+
+                      // Get stickers for this photo
+                      const photoStickers = placedStickers.filter(
+                        (sticker) => sticker.photoIndex === idx
+                      );
+
                       return (
-                        <img
+                        <div
                           key={src + idx}
-                          src={src}
-                          alt={`Strip ${idx + 1}`}
-                          className={imgClass}
-                          style={{
-                            ...imgStyle,
-                            ...getFilterStyle(selectedFilter),
-                          }}
-                        />
+                          className="relative"
+                          style={{ position: "relative" }}
+                        >
+                          <img
+                            src={src}
+                            alt={`Strip ${idx + 1}`}
+                            className={imgClass}
+                            style={{
+                              ...imgStyle,
+                              ...getFilterStyle(selectedFilter),
+                            }}
+                            onClick={(e) => {
+                              if (selectedSticker) {
+                                e.stopPropagation();
+                                handleStickerPlacement(idx, e);
+                              }
+                            }}
+                            onMouseDown={(e) => {
+                              if (selectedSticker) {
+                                e.stopPropagation();
+                              }
+                            }}
+                          />
+                          {/* Render placed stickers for this photo */}
+                          {photoStickers.map((sticker) => (
+                            <div
+                              key={sticker.id}
+                              className="absolute cursor-pointer hover:opacity-80 transition-opacity"
+                              style={{
+                                left: sticker.x - 15,
+                                top: sticker.y - 15,
+                                zIndex: 30,
+                                width: "30px",
+                                height: "30px",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                removeSticker(sticker.id);
+                              }}
+                            >
+                              <img
+                                src={`/stickers/${sticker.stickerId}.png`}
+                                alt="Placed sticker"
+                                className="w-full h-full object-contain"
+                                title="Click to remove"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  removeSticker(sticker.id);
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </div>
                       );
                     })}
+
+                    {/* Render stickers placed on the strip itself (not on photos) */}
+                    {placedStickers
+                      .filter((sticker) => sticker.photoIndex === -1)
+                      .map((sticker) => (
+                        <div
+                          key={sticker.id}
+                          className="absolute cursor-pointer hover:opacity-80 transition-opacity"
+                          style={{
+                            left: sticker.x - 15,
+                            top: sticker.y - 15,
+                            zIndex: 30,
+                            width: "30px",
+                            height: "30px",
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            removeSticker(sticker.id);
+                          }}
+                        >
+                          <img
+                            src={`/stickers/${sticker.stickerId}.png`}
+                            alt="Placed sticker"
+                            className="w-full h-full object-contain"
+                            title="Click to remove"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              removeSticker(sticker.id);
+                            }}
+                          />
+                        </div>
+                      ))}
                   </div>
                 ) : (
                   <div className="text-gray-400 text-2xl">No photos</div>
                 )}
+
+                {/* Message Space and Date */}
+                {capturedImages.length > 0 && (
+                  <div className="w-full mt-6 text-center">
+                    {/* Message space - placeholder for future feature */}
+                    <div className="h-16 border-t border-gray-200 pt-2 mb-2">
+                      <div className="text-xs text-gray-400 italic">
+                        Message space (coming soon)
+                      </div>
+                    </div>
+                    {/* Date - at the very bottom */}
+                    <div className="text-sm text-gray-600">
+                      {new Date().toLocaleDateString("en-US", {
+                        month: "2-digit",
+                        day: "2-digit",
+                        year: "numeric",
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-            {/* Right: Cards (Frames & Filters side by side) */}
-            <div className="flex flex-row items-start gap-8 -mr-44">
-              <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
-                <Frames
-                  selected={selectedFrame}
-                  onChange={setSelectedFrame}
-                  customSettings={customFrameSettings}
-                  onCustomSettingsChange={setCustomFrameSettings}
-                />
+            {/* Right: Cards (Frames & Filters side by side, Stickers below) */}
+            <div className="flex flex-col items-start gap-6 -mr-44">
+              {/* Top row: Frames and Filters side by side */}
+              <div className="flex flex-row items-start gap-8">
+                <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
+                  <Frames
+                    selected={selectedFrame}
+                    onChange={setSelectedFrame}
+                    customSettings={customFrameSettings}
+                    onCustomSettingsChange={setCustomFrameSettings}
+                  />
+                </div>
+                <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
+                  <Filters
+                    selected={selectedFilter}
+                    onChange={setSelectedFilter}
+                    className="justify-start"
+                  />
+                </div>
               </div>
+              {/* Bottom row: Stickers card */}
               <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
-                <Filters
-                  selected={selectedFilter}
-                  onChange={setSelectedFilter}
+                <Stickers
+                  selected={selectedSticker}
+                  onChange={setSelectedSticker}
+                  onUndo={handleUndo}
                   className="justify-start"
                 />
+                {selectedSticker && (
+                  <div className="mt-4 text-xs text-gray-600 text-center">
+                    Click on a photo to place the sticker
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1671,6 +1887,13 @@ export default function Home() {
             transform: scale(1) translateY(0);
             box-shadow: none;
           }
+        }
+        /* Prevent unwanted focus outlines and cursor styles */
+        .photostrip-container:focus {
+          outline: none !important;
+        }
+        .photostrip-container *:focus {
+          outline: none !important;
         }
       `}</style>
 
