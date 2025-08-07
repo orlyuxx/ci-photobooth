@@ -5,6 +5,7 @@ export default function Stickers({
   onChange = () => {},
   className = "",
   onUndo = () => {},
+  onStickersInit = undefined,
 }) {
   const stickers = [
     { id: "laugh", src: "/stickers/laugh.png", name: "Laugh" },
@@ -21,6 +22,9 @@ export default function Stickers({
     { id: "love1", src: "/stickers/love1.png", name: "Love 1" },
     { id: "hi", src: "/stickers/hi.png", name: "Hi" },
     { id: "hearts", src: "/stickers/hearts.png", name: "Hearts" },
+    { id: "love-webp", src: "/stickers/love.webp", name: "Love (webp)" },
+    { id: "aww-webp", src: "/stickers/aww.webp", name: "Aww (webp)" },
+    { id: "cat-webp", src: "/stickers/cat.webp", name: "Cat (webp)" },
     { id: "love", src: "/stickers/love.png", name: "Love" },
     { id: "smiling", src: "/stickers/smiling.png", name: "Smiling" },
     { id: "bow", src: "/stickers/bow.png", name: "Bow" },
@@ -28,6 +32,13 @@ export default function Stickers({
     { id: "hedgehog", src: "/stickers/hedgehog.png", name: "Hedgehog" },
     { id: "undo", src: "/stickers/undo.png", name: "Undo" },
   ];
+
+  // Call onStickersInit with the stickers array on mount
+  React.useEffect(() => {
+    if (typeof onStickersInit === "function") {
+      onStickersInit(stickers);
+    }
+  }, []);
 
   // Refs for each button
   const buttonRefs = useRef({});

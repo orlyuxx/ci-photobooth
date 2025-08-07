@@ -1107,6 +1107,9 @@ export default function Home() {
     };
   }, [step]);
 
+  // Add a ref to store the stickers array
+  const stickersRef = useRef([]);
+
   return (
     <div
       className={`min-h-screen w-full bg-gradient-to-br from-pink-100 via-blue-100 to-purple-100 ${
@@ -1601,36 +1604,41 @@ export default function Home() {
                             }}
                           />
                           {/* Render placed stickers for this photo */}
-                          {photoStickers.map((sticker) => (
-                            <div
-                              key={sticker.id}
-                              className="absolute cursor-pointer hover:opacity-80 transition-opacity"
-                              style={{
-                                left: sticker.x - 15,
-                                top: sticker.y - 15,
-                                zIndex: 30,
-                                width: "30px",
-                                height: "30px",
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                removeSticker(sticker.id);
-                              }}
-                            >
-                              <img
-                                src={`/stickers/${sticker.stickerId}.png`}
-                                alt="Placed sticker"
-                                className="w-full h-full object-contain"
-                                title="Click to remove"
+                          {photoStickers.map((sticker) => {
+                            const stickerObj = stickersRef.current.find(
+                              (s) => s.id === sticker.stickerId
+                            );
+                            return (
+                              <div
+                                key={sticker.id}
+                                className="absolute cursor-pointer hover:opacity-80 transition-opacity"
+                                style={{
+                                  left: sticker.x - 15,
+                                  top: sticker.y - 15,
+                                  zIndex: 30,
+                                  width: "30px",
+                                  height: "30px",
+                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   e.preventDefault();
                                   removeSticker(sticker.id);
                                 }}
-                              />
-                            </div>
-                          ))}
+                              >
+                                <img
+                                  src={stickerObj ? stickerObj.src : ""}
+                                  alt="Placed sticker"
+                                  className="w-full h-full object-contain"
+                                  title="Click to remove"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    removeSticker(sticker.id);
+                                  }}
+                                />
+                              </div>
+                            );
+                          })}
                         </div>
                       );
                     })}
@@ -1638,36 +1646,41 @@ export default function Home() {
                     {/* Render stickers placed on the strip itself (not on photos) */}
                     {placedStickers
                       .filter((sticker) => sticker.photoIndex === -1)
-                      .map((sticker) => (
-                        <div
-                          key={sticker.id}
-                          className="absolute cursor-pointer hover:opacity-80 transition-opacity"
-                          style={{
-                            left: sticker.x - 15,
-                            top: sticker.y - 15,
-                            zIndex: 30,
-                            width: "30px",
-                            height: "30px",
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            removeSticker(sticker.id);
-                          }}
-                        >
-                          <img
-                            src={`/stickers/${sticker.stickerId}.png`}
-                            alt="Placed sticker"
-                            className="w-full h-full object-contain"
-                            title="Click to remove"
+                      .map((sticker) => {
+                        const stickerObj = stickersRef.current.find(
+                          (s) => s.id === sticker.stickerId
+                        );
+                        return (
+                          <div
+                            key={sticker.id}
+                            className="absolute cursor-pointer hover:opacity-80 transition-opacity"
+                            style={{
+                              left: sticker.x - 15,
+                              top: sticker.y - 15,
+                              zIndex: 30,
+                              width: "30px",
+                              height: "30px",
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               e.preventDefault();
                               removeSticker(sticker.id);
                             }}
-                          />
-                        </div>
-                      ))}
+                          >
+                            <img
+                              src={stickerObj ? stickerObj.src : ""}
+                              alt="Placed sticker"
+                              className="w-full h-full object-contain"
+                              title="Click to remove"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                removeSticker(sticker.id);
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
                   </div>
                 ) : (
                   <div className="text-gray-400 text-2xl">No photos</div>
@@ -1721,6 +1734,7 @@ export default function Home() {
                   onChange={setSelectedSticker}
                   onUndo={handleUndo}
                   className="justify-start"
+                  onStickersInit={(arr) => (stickersRef.current = arr)}
                 />
                 {selectedSticker && (
                   <div className="mt-4 text-xs text-gray-600 text-center">
