@@ -549,6 +549,21 @@ function DraggableSVG({ children, initial, className = "", onClickEffect }) {
   let effectId = useRef(0);
   const TRAIL_LENGTH = 12; // Number of trail points
 
+  // Clamp position to viewport
+  const clampToViewport = (x, y) => {
+    // Assume icon is about 40x40px max (adjust if needed)
+    const iconW = 40,
+      iconH = 40;
+    const minX = 0;
+    const minY = 0;
+    const maxX = window.innerWidth - iconW;
+    const maxY = window.innerHeight - iconH;
+    return {
+      x: Math.max(minX, Math.min(x, maxX)),
+      y: Math.max(minY, Math.min(y, maxY)),
+    };
+  };
+
   // Mouse events
   const onMouseDown = (e) => {
     setDragging(true);
@@ -562,7 +577,8 @@ function DraggableSVG({ children, initial, className = "", onClickEffect }) {
   };
   const onMouseMove = (e) => {
     if (!dragging) return;
-    const newPos = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+    let newPos = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+    newPos = clampToViewport(newPos.x, newPos.y);
     setPos(newPos);
     setTrail((prev) => {
       const next = [...prev, newPos];
@@ -588,7 +604,8 @@ function DraggableSVG({ children, initial, className = "", onClickEffect }) {
   const onTouchMove = (e) => {
     if (!dragging) return;
     const touch = e.touches[0];
-    const newPos = { x: touch.clientX - offset.x, y: touch.clientY - offset.y };
+    let newPos = { x: touch.clientX - offset.x, y: touch.clientY - offset.y };
+    newPos = clampToViewport(newPos.x, newPos.y);
     setPos(newPos);
     setTrail((prev) => {
       const next = [...prev, newPos];
@@ -1076,11 +1093,25 @@ export default function Home() {
     });
   };
 
+  useEffect(() => {
+    if (step === "welcome") {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [step]);
+
   return (
     <div
       className={`min-h-screen w-full bg-gradient-to-br from-pink-100 via-blue-100 to-purple-100 ${
         step === "welcome"
-          ? "flex items-center justify-center"
+          ? "flex items-center justify-center overflow-hidden"
           : "flex flex-col items-center justify-start"
       } py-0 px-0 relative`}
     >
@@ -1208,7 +1239,7 @@ export default function Home() {
           {step === "welcome" && (
             <button
               className={
-                `mt-12 px-6 py-2 rounded-full bg-gradient-to-r from-pink-400 via-blue-400 to-purple-400 text-white text-md font-bold shadow-lg hover:scale-105 transition-transform focus:outline-none focus:ring-4 focus:ring-pink-200 cursor-pointer transition-all duration-400 ease-out transform ` +
+                `mt-12 px-6 py-2 rounded-full bg-gradient-to-r from-pink-400 via-blue-400 to-purple-400 text-white text-md font-bold shadow-lg hover:scale-105 transition-transform focus:outline-none cursor-pointer transition-all duration-400 ease-out transform ` +
                 (showCard
                   ? "opacity-100 scale-100 translate-y-0"
                   : "opacity-0 scale-90 translate-y-8")
