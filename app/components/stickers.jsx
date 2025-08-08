@@ -22,9 +22,9 @@ export default function Stickers({
     { id: "love1", src: "/stickers/love1.png", name: "Love 1" },
     { id: "hi", src: "/stickers/hi.png", name: "Hi" },
     { id: "hearts", src: "/stickers/hearts.png", name: "Hearts" },
-    { id: "love-webp", src: "/stickers/love.webp", name: "Love (webp)" },
-    { id: "aww-webp", src: "/stickers/aww.webp", name: "Aww (webp)" },
-    { id: "cat-webp", src: "/stickers/cat.webp", name: "Cat (webp)" },
+    { id: "love-webp", src: "/stickers/love.webp", name: "Fingerheart" },
+    { id: "aww-webp", src: "/stickers/aww.webp", name: "Aww" },
+    { id: "cat-webp", src: "/stickers/cat.webp", name: "Cat" },
     { id: "love", src: "/stickers/love.png", name: "Love" },
     { id: "smiling", src: "/stickers/smiling.png", name: "Smiling" },
     { id: "bow", src: "/stickers/bow.png", name: "Bow" },
@@ -46,6 +46,7 @@ export default function Stickers({
   const handleStickerClick = (stickerId) => {
     if (stickerId === "undo") {
       onUndo();
+      onChange(null); // Always clear selection on undo
       // Blur the undo button so it can be clicked again immediately
       if (buttonRefs.current[stickerId]) {
         buttonRefs.current[stickerId].blur();

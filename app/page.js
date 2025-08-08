@@ -734,6 +734,7 @@ export default function Home() {
   const [capturedImages, setCapturedImages] = useState([]);
   const [showCaptureEffect, setShowCaptureEffect] = useState(false);
   const [animatedPreviews, setAnimatedPreviews] = useState([]); // track which previews have animated
+  const [showRefreshAnim, setShowRefreshAnim] = useState(false); // refresh sweep animation
 
   // Add mounted state to prevent FOUC
   const [mounted, setMounted] = useState(false);
@@ -978,9 +979,14 @@ export default function Home() {
   const canRetake =
     capturedImages.length === settings.numberOfPhotos && !isCapturing;
   const handleRetake = () => {
+    // Trigger sleek refresh sweep animation
+    setShowRefreshAnim(true);
+    // Clear content immediately so it feels like a refresh
     setCapturedImages([]);
     setAnimatedPreviews([]);
     setPlacedStickers([]);
+    // Hide animation after it sweeps
+    setTimeout(() => setShowRefreshAnim(false), 1200);
   };
   const handlePrint = () => {
     if (canRetake) {
@@ -1084,6 +1090,7 @@ export default function Home() {
   };
 
   // Function to undo last placed sticker
+  // NOTE: This removes the last sticker added, regardless of which photo or strip it is on (global undo)
   const handleUndo = () => {
     setPlacedStickers((prev) => {
       if (prev.length > 0) {
@@ -1231,13 +1238,13 @@ export default function Home() {
           </div>
           <h2
             className={
-              `text-xl font-medium text-purple-500 text-center transition-all duration-400 ease-out transform ` +
+              `text-lg font-medium text-purple-500 text-center transition-all duration-400 ease-out transform ` +
               (showCard
                 ? "opacity-100 translate-y-0 opacity-80"
                 : "opacity-0 translate-y-8")
             }
           >
-            Pose and capture your cute moments!
+            Capture it, remember it
           </h2>
           {step === "welcome" && (
             <button
@@ -1278,10 +1285,10 @@ export default function Home() {
               </h1>
             </div>
             <h2
-              className="text-lg font-medium text-center text-purple-500 mt-2"
+              className="text-md font-medium text-center text-purple-500 mt-2"
               style={{ letterSpacing: 0.2 }}
             >
-              Pose and capture your best moments!
+              Capture it, remember it
             </h2>
           </div>
           {/* Main: Two Columns */}
@@ -1492,7 +1499,7 @@ export default function Home() {
                         const y = e.clientY - rect.top;
 
                         const newSticker = {
-                          id: Date.now(),
+                          id: Date.now() + Math.random(),
                           stickerId: selectedSticker,
                           photoIndex: -1, // -1 means placed on the strip itself
                           x: x,
@@ -1623,17 +1630,19 @@ export default function Home() {
                                   e.stopPropagation();
                                   e.preventDefault();
                                   removeSticker(sticker.id);
+                                  setSelectedSticker(null); // Always clear selection on remove
                                 }}
                               >
                                 <img
                                   src={stickerObj ? stickerObj.src : ""}
                                   alt="Placed sticker"
                                   className="w-full h-full object-contain"
-                                  title="Click to remove"
+                                  title="Click twice to remove"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
                                     removeSticker(sticker.id);
+                                    setSelectedSticker(null); // Always clear selection on remove
                                   }}
                                 />
                               </div>
@@ -1665,17 +1674,19 @@ export default function Home() {
                               e.stopPropagation();
                               e.preventDefault();
                               removeSticker(sticker.id);
+                              setSelectedSticker(null); // Always clear selection on remove
                             }}
                           >
                             <img
                               src={stickerObj ? stickerObj.src : ""}
                               alt="Placed sticker"
                               className="w-full h-full object-contain"
-                              title="Click to remove"
+                              title="Click twice to remove"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
                                 removeSticker(sticker.id);
+                                setSelectedSticker(null); // Always clear selection on remove
                               }}
                             />
                           </div>
@@ -1738,7 +1749,7 @@ export default function Home() {
                 />
                 {selectedSticker && (
                   <div className="mt-4 text-xs text-gray-600 text-center">
-                    Click on a photo to place the sticker
+                    Click on the photo strip to place the sticker
                   </div>
                 )}
               </div>
@@ -1767,6 +1778,12 @@ export default function Home() {
             <span className="loader-dot animation-delay-300"></span>
             <span className="loader-dot animation-delay-450"></span>
           </div>
+        </div>
+      )}
+      {/* Retake "refresh sweep" animation overlay */}
+      {showRefreshAnim && (
+        <div className="refresh-overlay">
+          <div className="refresh-sweep" />
         </div>
       )}
       {/* Fade-in animation for overlay and loader dot animation */}
@@ -1939,6 +1956,62 @@ export default function Home() {
         }
         .photostrip-container *:focus {
           outline: none !important;
+        }
+
+        /* Refresh sweep animation */
+        .refresh-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 60;
+          pointer-events: none;
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.03);
+          animation: refresh-fade 1200ms ease-in-out forwards;
+          will-change: background;
+        }
+        .refresh-sweep {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: -50%;
+          width: 70%;
+          background: linear-gradient(
+            110deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.25) 35%,
+            rgba(255, 255, 255, 0.85) 50%,
+            rgba(255, 255, 255, 0.25) 65%,
+            rgba(255, 255, 255, 0) 100%
+          );
+          filter: blur(10px);
+          transform: skewX(-10deg) translateX(0);
+          animation: refresh-sweep 1200ms cubic-bezier(0.22, 1, 0.36, 1)
+            forwards;
+          will-change: transform, opacity;
+        }
+        @keyframes refresh-sweep {
+          0% {
+            transform: skewX(-10deg) translateX(-120%);
+            opacity: 0.9;
+          }
+          60% {
+            opacity: 1;
+          }
+          100% {
+            transform: skewX(-10deg) translateX(220%);
+            opacity: 0;
+          }
+        }
+        @keyframes refresh-fade {
+          0% {
+            background: rgba(255, 255, 255, 0.03);
+          }
+          50% {
+            background: rgba(255, 255, 255, 0.07);
+          }
+          100% {
+            background: rgba(255, 255, 255, 0);
+          }
         }
       `}</style>
 

@@ -21,10 +21,13 @@ const Navbar = ({
       <div className="mini-navbar-animate flex bg-white/80 backdrop-blur-lg rounded-xl shadow-xl px-2 py-1 gap-1 border border-white/60 transition-all duration-200">
         {/* Settings */}
         <button
-          className="mini-nav-btn"
+          className={`mini-nav-btn${
+            isCapturing ? " mini-nav-btn-disabled" : ""
+          }`}
           aria-label="Settings"
           type="button"
-          onClick={onSettingsOpen}
+          onClick={isCapturing ? undefined : onSettingsOpen}
+          disabled={isCapturing}
         >
           <span className="bg-gray-200 rounded-full flex items-center justify-center p-1.5">
             <img src="/images/setting.png" alt="Settings" className="w-5 h-5" />
