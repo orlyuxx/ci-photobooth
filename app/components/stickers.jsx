@@ -42,6 +42,8 @@ export default function Stickers({
 
   // Refs for each button
   const buttonRefs = useRef({});
+  // Guard to prevent double-fire (pointer down + click) on Undo
+  const undoFiredRef = useRef(false);
 
   const handleStickerClick = (stickerId) => {
     if (stickerId === "undo") {
@@ -63,6 +65,8 @@ export default function Stickers({
     if (e && typeof e.stopPropagation === "function") e.stopPropagation();
     onUndo();
     onChange(null);
+    // Mark as fired so the following click (if any) is ignored
+    undoFiredRef.current = true;
     const undoBtn = buttonRefs.current["undo"];
     if (undoBtn && typeof undoBtn.blur === "function") undoBtn.blur();
   };
@@ -94,7 +98,12 @@ export default function Stickers({
             onClick={
               sticker.id === "undo"
                 ? (e) => {
-                    // If click still happens (e.g., keyboard), run once
+                    // If a pointer/touch already handled it, ignore this click
+                    if (undoFiredRef.current) {
+                      undoFiredRef.current = false;
+                      return;
+                    }
+                    // Otherwise, handle click (e.g., keyboard activation)
                     handleUndoImmediate(e);
                   }
                 : () => handleStickerClick(sticker.id)

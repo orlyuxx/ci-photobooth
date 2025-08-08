@@ -716,7 +716,7 @@ function DraggableSVG({ children, initial, className = "", onClickEffect }) {
   );
 }
 
-export default function Home() {
+export default function Page() {
   const [step, setStep] = useState("welcome");
   const [showPhotobooth, setShowPhotobooth] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
@@ -1090,20 +1090,20 @@ export default function Home() {
     }
   };
 
-  // Function to handle sticker placement
+  // Function to handle sticker placement (always relative to the whole photostrip)
   const handleStickerPlacement = (photoIndex, event) => {
-    if (!selectedSticker) return;
+    if (!selectedSticker || !photostripRef.current) return;
 
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const stripRect = photostripRef.current.getBoundingClientRect();
+    const x = event.clientX - stripRect.left;
+    const y = event.clientY - stripRect.top;
 
     const newSticker = {
       id: Date.now() + Math.random(),
       stickerId: selectedSticker,
-      photoIndex: photoIndex,
-      x: x,
-      y: y,
+      photoIndex: -1,
+      x,
+      y,
     };
 
     setPlacedStickers((prev) => [...prev, newSticker]);
@@ -1152,6 +1152,140 @@ export default function Home() {
 
   // Add a ref to store the stickers array
   const stickersRef = useRef([]);
+  // Refs to constrain dragging of placed stickers
+  const photostripRef = useRef(null);
+  const photoContainersRef = useRef({});
+  // Track placement gesture on the strip to avoid duplicate placement during drag
+  const stripPlaceRef = useRef({
+    isPlacing: false,
+    startX: 0,
+    startY: 0,
+    moved: false,
+  });
+
+  // Start drag for a placed sticker. If the pointer does not move beyond a small
+  // threshold, treat it as a click and remove the sticker. Otherwise, drag it
+  // within the bounds of its container (photo or photostrip).
+  const beginPlacedStickerInteraction = (sticker, containerEl) => (e) => {
+    const container = photostripRef.current || containerEl;
+    if (!container) return;
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    if (e && typeof e.stopPropagation === "function") e.stopPropagation();
+
+    const startClientX = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
+    const startClientY = e.clientY ?? (e.touches && e.touches[0]?.clientY) ?? 0;
+    const startX = sticker.x;
+    const startY = sticker.y;
+
+    const halfSize = 15; // sticker visual half-size (30px total)
+    const containerWidth =
+      container.clientWidth || container.getBoundingClientRect().width;
+    const containerHeight =
+      container.clientHeight || container.getBoundingClientRect().height;
+    const minX = halfSize;
+    const minY = halfSize;
+    const maxX = Math.max(halfSize, containerWidth - halfSize);
+    const maxY = Math.max(halfSize, containerHeight - halfSize);
+
+    let didMove = false;
+    const moveThreshold = 3; // px
+
+    const handleMove = (ev) => {
+      const clientX = ev.clientX ?? (ev.touches && ev.touches[0]?.clientX) ?? 0;
+      const clientY = ev.clientY ?? (ev.touches && ev.touches[0]?.clientY) ?? 0;
+      const dx = clientX - startClientX;
+      const dy = clientY - startClientY;
+      if (!didMove && Math.abs(dx) + Math.abs(dy) > moveThreshold) {
+        didMove = true;
+      }
+      if (didMove) {
+        const newX = Math.min(maxX, Math.max(minX, startX + dx));
+        const newY = Math.min(maxY, Math.max(minY, startY + dy));
+        setPlacedStickers((prev) =>
+          prev.map((s) =>
+            s.id === sticker.id ? { ...s, x: newX, y: newY } : s
+          )
+        );
+      }
+    };
+
+    const handleUp = () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleUp);
+      if (!didMove) {
+        removeSticker(sticker.id);
+        setSelectedSticker(null);
+      }
+    };
+
+    window.addEventListener("pointermove", handleMove, { passive: true });
+    window.addEventListener("pointerup", handleUp, { passive: true });
+    // Fallback touch listeners (in case pointer events are not supported)
+    window.addEventListener("touchmove", handleMove, { passive: true });
+    window.addEventListener("touchend", handleUp, { passive: true });
+  };
+
+  // Begin placement on the strip: only place on a tap/click (no drag)
+  const handleStripPointerDown = (e) => {
+    if (!selectedSticker || !photostripRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
+    const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY) ?? 0;
+    stripPlaceRef.current = {
+      isPlacing: true,
+      startX: clientX,
+      startY: clientY,
+      moved: false,
+    };
+
+    const move = (ev) => {
+      const mx = ev.clientX ?? (ev.touches && ev.touches[0]?.clientX) ?? 0;
+      const my = ev.clientY ?? (ev.touches && ev.touches[0]?.clientY) ?? 0;
+      if (!stripPlaceRef.current.moved) {
+        const dx = Math.abs(mx - stripPlaceRef.current.startX);
+        const dy = Math.abs(my - stripPlaceRef.current.startY);
+        if (dx + dy > 4) stripPlaceRef.current.moved = true;
+      }
+    };
+
+    const up = (ev) => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", up);
+      if (!stripPlaceRef.current.isPlacing) return;
+      const didMove = stripPlaceRef.current.moved;
+      stripPlaceRef.current.isPlacing = false;
+      if (didMove) return; // treat as drag; no placement
+      if (!photostripRef.current) return;
+      const rect = photostripRef.current.getBoundingClientRect();
+      const px =
+        (ev.clientX ??
+          (ev.changedTouches && ev.changedTouches[0]?.clientX) ??
+          0) - rect.left;
+      const py =
+        (ev.clientY ??
+          (ev.changedTouches && ev.changedTouches[0]?.clientY) ??
+          0) - rect.top;
+      const newSticker = {
+        id: Date.now() + Math.random(),
+        stickerId: selectedSticker,
+        photoIndex: -1,
+        x: px,
+        y: py,
+      };
+      setPlacedStickers((prev) => [...prev, newSticker]);
+      setTimeout(() => setSelectedSticker(null), 0);
+    };
+
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerup", up, { passive: true });
+    window.addEventListener("touchmove", move, { passive: true });
+    window.addEventListener("touchend", up, { passive: true });
+  };
 
   return (
     <div
@@ -1534,58 +1668,20 @@ export default function Home() {
                   <div
                     className="flex flex-col items-center photostrip-container"
                     style={{
-                      width: "auto",
+                      width: "100%",
                       position: "relative",
                       zIndex: 20,
                       outline: "none",
                       border: "none",
                     }}
-                    onClick={(e) => {
-                      if (selectedSticker) {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const y = e.clientY - rect.top;
-
-                        const newSticker = {
-                          id: Date.now() + Math.random(),
-                          stickerId: selectedSticker,
-                          photoIndex: -1, // -1 means placed on the strip itself
-                          x: x,
-                          y: y,
-                        };
-
-                        setPlacedStickers((prev) => [...prev, newSticker]);
-                        setSelectedSticker(null);
-                      }
-                    }}
-                    onMouseDown={(e) => {
-                      if (selectedSticker) {
-                        // Allow the click to bubble up to the parent
-                        e.stopPropagation();
-                      }
-                    }}
+                    ref={photostripRef}
+                    onPointerDown={handleStripPointerDown}
+                    onTouchStart={handleStripPointerDown}
                   >
-                    {selectedSticker && (
-                      <div
-                        className="absolute inset-0 pointer-events-auto z-10"
-                        onClick={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          const x = e.clientX - rect.left;
-                          const y = e.clientY - rect.top;
+                    {/* Removed overlay to avoid duplicate placements and allow photo clicks */}
+                    {/* Transparent layer kept for consistent stacking but no click handler to avoid duplicates */}
+                    <div className="absolute inset-0" style={{ zIndex: 1 }} />
 
-                          const newSticker = {
-                            id: Date.now() + Math.random(),
-                            stickerId: selectedSticker,
-                            photoIndex: -1,
-                            x: x,
-                            y: y,
-                          };
-
-                          setPlacedStickers((prev) => [...prev, newSticker]);
-                          setSelectedSticker(null);
-                        }}
-                      />
-                    )}
                     {capturedImages.map((src, idx) => {
                       let imgStyle = {
                         borderRadius: 0,
@@ -1637,6 +1733,7 @@ export default function Home() {
                           key={src + idx}
                           className="relative"
                           style={{ position: "relative" }}
+                          ref={(el) => (photoContainersRef.current[idx] = el)}
                         >
                           <img
                             src={src}
@@ -1654,9 +1751,12 @@ export default function Home() {
                             }}
                             onMouseDown={(e) => {
                               if (selectedSticker) {
+                                // Prevent image drag-start from triggering undesired behavior
+                                e.preventDefault();
                                 e.stopPropagation();
                               }
                             }}
+                            draggable={false}
                           />
                           {/* Render placed stickers for this photo */}
                           {photoStickers.map((sticker) => {
@@ -1673,22 +1773,28 @@ export default function Home() {
                                   zIndex: 30,
                                   width: "30px",
                                   height: "30px",
+                                  touchAction: "none",
+                                  userSelect: "none",
                                 }}
-                                onMouseDown={handleRemovePlacedStickerImmediate(
-                                  sticker.id
-                                )}
-                                onTouchStart={handleRemovePlacedStickerImmediate(
-                                  sticker.id
-                                )}
-                                onClick={handleRemovePlacedStickerImmediate(
-                                  sticker.id
-                                )}
+                                onPointerDown={(e) =>
+                                  beginPlacedStickerInteraction(
+                                    sticker,
+                                    photoContainersRef.current[idx]
+                                  )(e)
+                                }
+                                onClick={(e) => {
+                                  // Prevent bubbling to strip container which would place a new sticker
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                                onDragStart={(e) => e.preventDefault()}
                               >
                                 <img
                                   src={stickerObj ? stickerObj.src : ""}
                                   alt="Placed sticker"
                                   className="w-full h-full object-contain"
-                                  title="Click twice to remove"
+                                  draggable={false}
+                                  title="Drag or click to remove"
                                 />
                               </div>
                             );
@@ -1714,22 +1820,28 @@ export default function Home() {
                               zIndex: 30,
                               width: "30px",
                               height: "30px",
+                              touchAction: "none",
+                              userSelect: "none",
                             }}
-                            onMouseDown={handleRemovePlacedStickerImmediate(
-                              sticker.id
-                            )}
-                            onTouchStart={handleRemovePlacedStickerImmediate(
-                              sticker.id
-                            )}
-                            onClick={handleRemovePlacedStickerImmediate(
-                              sticker.id
-                            )}
+                            onPointerDown={(e) =>
+                              beginPlacedStickerInteraction(
+                                sticker,
+                                photostripRef.current
+                              )(e)
+                            }
+                            onClick={(e) => {
+                              // Prevent bubbling to strip container which would place a new sticker
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onDragStart={(e) => e.preventDefault()}
                           >
                             <img
                               src={stickerObj ? stickerObj.src : ""}
                               alt="Placed sticker"
                               className="w-full h-full object-contain"
-                              title="Click twice to remove"
+                              draggable={false}
+                              title="Drag or click to remove"
                             />
                           </div>
                         );
