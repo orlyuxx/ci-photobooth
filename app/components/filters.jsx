@@ -43,16 +43,7 @@ export default function Filters({
         >
           Brightness
         </button>
-        <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
-            selected === "contrast"
-              ? "bg-black text-white border-black"
-              : "bg-white text-black border-black hover:bg-gray-100"
-          }`}
-          onClick={() => onChange("contrast")}
-        >
-          Contrast
-        </button>
+        {/* Swap order: show Sepia before Blue */}
         <button
           className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "sepia"
@@ -65,15 +56,28 @@ export default function Filters({
         </button>
         <button
           className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
-            selected === "vintage"
+            selected === "blue"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
           }`}
-          onClick={() => onChange("vintage")}
+          onClick={() => onChange("blue")}
         >
-          Vintage
+          Blue
+        </button>
+        {/* Rename Vintage -> Red */}
+        <button
+          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+            selected === "red"
+              ? "bg-black text-white border-black"
+              : "bg-white text-black border-black hover:bg-gray-100"
+          }`}
+          onClick={() => onChange("red")}
+        >
+          Red
         </button>
       </div>
+      {/* Small spacer to align height with Frames card (~4px) */}
+      <div className="h-1" aria-hidden="true"></div>
     </div>
   );
 }

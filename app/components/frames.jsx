@@ -148,12 +148,7 @@ export default function Frames({
                       style={{
                         backgroundColor:
                           customSettings.backgroundColor || "white",
-                        backgroundImage:
-                          (
-                            customSettings.backgroundColor || "#ffffff"
-                          ).toLowerCase() === "#ffffff"
-                            ? "linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee)"
-                            : "none",
+                        backgroundImage: "none",
                         backgroundSize: "8px 8px",
                         backgroundPosition: "0 0, 4px 4px",
                       }}

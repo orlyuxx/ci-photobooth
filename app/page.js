@@ -1029,13 +1029,23 @@ export default function Home() {
         return { filter: "grayscale(100%)" };
       case "brightness":
         return { filter: "brightness(1.3) contrast(1.1)" };
-      case "contrast":
-        return { filter: "contrast(1.5) brightness(1.1)" };
+      case "blue":
+        // Intense blue tone
+        return {
+          filter:
+            "grayscale(20%) sepia(80%) hue-rotate(195deg) saturate(10) brightness(0.92) contrast(1.2)",
+        };
       case "sepia":
         return { filter: "sepia(80%)" };
       case "vintage":
         return {
           filter: "sepia(40%) brightness(1.1) contrast(1.2) saturate(1.3)",
+        };
+      case "red":
+        // Deep red room tone
+        return {
+          filter:
+            "grayscale(0%) sepia(100%) hue-rotate(-20deg) saturate(16) brightness(0.9) contrast(1.18)",
         };
       case "none":
       default:
