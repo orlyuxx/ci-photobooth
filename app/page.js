@@ -735,6 +735,8 @@ export default function Home() {
   const [showCaptureEffect, setShowCaptureEffect] = useState(false);
   const [animatedPreviews, setAnimatedPreviews] = useState([]); // track which previews have animated
   const [showRefreshAnim, setShowRefreshAnim] = useState(false); // refresh sweep animation
+  const [showPageTransition, setShowPageTransition] = useState(false); // transition to editor
+  const [showEditorAnim, setShowEditorAnim] = useState(false); // animate editor components in
 
   // Add mounted state to prevent FOUC
   const [mounted, setMounted] = useState(false);
@@ -797,6 +799,13 @@ export default function Home() {
       setTimeout(() => setShowPhotobooth(true), 50);
     } else {
       setShowPhotobooth(false);
+    }
+  }, [step]);
+
+  // Reset editor entrance animation when leaving editor
+  useEffect(() => {
+    if (step !== "editor") {
+      setShowEditorAnim(false);
     }
   }, [step]);
 
@@ -990,7 +999,16 @@ export default function Home() {
   };
   const handlePrint = () => {
     if (canRetake) {
-      setStep("editor");
+      // Play a distinct, elegant radial glow transition
+      setShowPageTransition(true);
+      // Switch to editor mid-transition
+      setTimeout(() => {
+        setStep("editor");
+        // Start editor component entrances shortly after mount
+        setTimeout(() => setShowEditorAnim(true), 80);
+      }, 480);
+      // Clear the overlay after the animation completes
+      setTimeout(() => setShowPageTransition(false), 1200);
     }
   };
 
@@ -1425,7 +1443,13 @@ export default function Home() {
       {step === "editor" && (
         <div className="w-full max-w-6xl mx-auto flex flex-col items-center mt-12 mb-8 transition-all duration-700">
           {/* Logo and Title */}
-          <div className="flex flex-row items-center gap-4 mb-4">
+          <div
+            className={
+              "flex flex-row items-center gap-4 mb-4" +
+              (showEditorAnim ? " editor-entrance" : "")
+            }
+            style={{ animationDelay: showEditorAnim ? "60ms" : undefined }}
+          >
             <img
               src="/images/photobooth-logo.png"
               alt="Photobooth Logo"
@@ -1441,8 +1465,14 @@ export default function Home() {
           <div className="flex flex-row w-full items-start justify-end px-12 mt-8">
             {/* Left: Photo Strip */}
             <div
-              className="flex flex-col items-center justify-center mr-60"
-              style={{ minWidth: 320 }}
+              className={
+                "flex flex-col items-center justify-center mr-60" +
+                (showEditorAnim ? " editor-entrance" : "")
+              }
+              style={{
+                minWidth: 320,
+                animationDelay: showEditorAnim ? "120ms" : undefined,
+              }}
             >
               <div
                 className={`shadow-2xl flex flex-col items-center justify-center py-6 px-4 relative`}
@@ -1719,10 +1749,24 @@ export default function Home() {
               </div>
             </div>
             {/* Right: Cards (Frames & Filters side by side, Stickers below) */}
-            <div className="flex flex-col items-start gap-6 -mr-44">
+            <div
+              className={
+                "flex flex-col items-start gap-6 -mr-44" +
+                (showEditorAnim ? " editor-entrance" : "")
+              }
+              style={{ animationDelay: showEditorAnim ? "160ms" : undefined }}
+            >
               {/* Top row: Frames and Filters side by side */}
               <div className="flex flex-row items-start gap-8">
-                <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
+                <div
+                  className={
+                    "bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]" +
+                    (showEditorAnim ? " editor-entrance" : "")
+                  }
+                  style={{
+                    animationDelay: showEditorAnim ? "220ms" : undefined,
+                  }}
+                >
                   <Frames
                     selected={selectedFrame}
                     onChange={setSelectedFrame}
@@ -1730,7 +1774,15 @@ export default function Home() {
                     onCustomSettingsChange={setCustomFrameSettings}
                   />
                 </div>
-                <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
+                <div
+                  className={
+                    "bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]" +
+                    (showEditorAnim ? " editor-entrance" : "")
+                  }
+                  style={{
+                    animationDelay: showEditorAnim ? "260ms" : undefined,
+                  }}
+                >
                   <Filters
                     selected={selectedFilter}
                     onChange={setSelectedFilter}
@@ -1739,7 +1791,13 @@ export default function Home() {
                 </div>
               </div>
               {/* Bottom row: Stickers card */}
-              <div className="bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]">
+              <div
+                className={
+                  "bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]" +
+                  (showEditorAnim ? " editor-entrance" : "")
+                }
+                style={{ animationDelay: showEditorAnim ? "320ms" : undefined }}
+              >
                 <Stickers
                   selected={selectedSticker}
                   onChange={setSelectedSticker}
@@ -1784,6 +1842,12 @@ export default function Home() {
       {showRefreshAnim && (
         <div className="refresh-overlay">
           <div className="refresh-sweep" />
+        </div>
+      )}
+      {/* Page transition overlay (photobooth -> editor) */}
+      {showPageTransition && (
+        <div className="page-transition-overlay">
+          <div className="page-transition-glow" />
         </div>
       )}
       {/* Fade-in animation for overlay and loader dot animation */}
@@ -2011,6 +2075,97 @@ export default function Home() {
           }
           100% {
             background: rgba(255, 255, 255, 0);
+          }
+        }
+
+        /* Page transition: elegant radial glow (photobooth -> editor) */
+        .page-transition-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 70;
+          pointer-events: none;
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.02);
+          animation: page-fade 1200ms ease-in-out forwards;
+          will-change: background;
+        }
+        .page-transition-glow {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 20vmax;
+          height: 20vmax;
+          border-radius: 50%;
+          transform: translate(-50%, -50%) scale(0.7);
+          background: radial-gradient(
+            circle at center,
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(255, 255, 255, 0.5) 40%,
+            rgba(255, 255, 255, 0.15) 70%,
+            rgba(255, 255, 255, 0) 100%
+          );
+          filter: blur(10px);
+          animation: page-glow 1200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          will-change: transform, opacity, filter;
+        }
+        @keyframes page-glow {
+          0% {
+            transform: translate(-50%, -50%) scale(0.7);
+            opacity: 0.85;
+            filter: blur(8px);
+          }
+          50% {
+            opacity: 1;
+            filter: blur(12px);
+          }
+          80% {
+            opacity: 0.7;
+            filter: blur(14px);
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(2.2);
+            opacity: 0;
+            filter: blur(18px);
+          }
+        }
+        @keyframes page-fade {
+          0% {
+            background: rgba(255, 255, 255, 0.02);
+          }
+          50% {
+            background: rgba(255, 255, 255, 0.08);
+          }
+          100% {
+            background: rgba(255, 255, 255, 0);
+          }
+        }
+
+        /* Editor entrances - smooth, simple */
+        .editor-entrance {
+          opacity: 0;
+          transform: translateY(8px) scale(0.99);
+          animation: editor-enter 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          will-change: transform, opacity;
+        }
+        @keyframes editor-enter {
+          0% {
+            opacity: 0;
+            transform: translateY(8px) scale(0.99);
+          }
+          70% {
+            opacity: 1;
+            transform: translateY(0) scale(1.005);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .editor-entrance {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
           }
         }
       `}</style>
