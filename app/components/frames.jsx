@@ -95,7 +95,7 @@ export default function Frames({
                   </span>
                   <div className="relative" ref={borderColorRef}>
                     <button
-                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600"
+                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer"
                       style={{
                         backgroundColor: customSettings.borderColor || "black",
                         backgroundImage:
@@ -144,7 +144,7 @@ export default function Frames({
                   </span>
                   <div className="relative" ref={backgroundColorRef}>
                     <button
-                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600"
+                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer"
                       style={{
                         backgroundColor:
                           customSettings.backgroundColor || "white",

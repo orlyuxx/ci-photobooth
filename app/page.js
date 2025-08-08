@@ -1117,6 +1117,14 @@ export default function Home() {
     );
   };
 
+  // Immediate removal handler so a placed sticker disappears on first press
+  const handleRemovePlacedStickerImmediate = (stickerId) => (e) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    if (e && typeof e.stopPropagation === "function") e.stopPropagation();
+    removeSticker(stickerId);
+    setSelectedSticker(null);
+  };
+
   // Function to undo last placed sticker
   // NOTE: This removes the last sticker added, regardless of which photo or strip it is on (global undo)
   const handleUndo = () => {
@@ -1666,24 +1674,21 @@ export default function Home() {
                                   width: "30px",
                                   height: "30px",
                                 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                  removeSticker(sticker.id);
-                                  setSelectedSticker(null); // Always clear selection on remove
-                                }}
+                                onMouseDown={handleRemovePlacedStickerImmediate(
+                                  sticker.id
+                                )}
+                                onTouchStart={handleRemovePlacedStickerImmediate(
+                                  sticker.id
+                                )}
+                                onClick={handleRemovePlacedStickerImmediate(
+                                  sticker.id
+                                )}
                               >
                                 <img
                                   src={stickerObj ? stickerObj.src : ""}
                                   alt="Placed sticker"
                                   className="w-full h-full object-contain"
                                   title="Click twice to remove"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    removeSticker(sticker.id);
-                                    setSelectedSticker(null); // Always clear selection on remove
-                                  }}
                                 />
                               </div>
                             );
@@ -1710,24 +1715,21 @@ export default function Home() {
                               width: "30px",
                               height: "30px",
                             }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              removeSticker(sticker.id);
-                              setSelectedSticker(null); // Always clear selection on remove
-                            }}
+                            onMouseDown={handleRemovePlacedStickerImmediate(
+                              sticker.id
+                            )}
+                            onTouchStart={handleRemovePlacedStickerImmediate(
+                              sticker.id
+                            )}
+                            onClick={handleRemovePlacedStickerImmediate(
+                              sticker.id
+                            )}
                           >
                             <img
                               src={stickerObj ? stickerObj.src : ""}
                               alt="Placed sticker"
                               className="w-full h-full object-contain"
                               title="Click twice to remove"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                removeSticker(sticker.id);
-                                setSelectedSticker(null); // Always clear selection on remove
-                              }}
                             />
                           </div>
                         );

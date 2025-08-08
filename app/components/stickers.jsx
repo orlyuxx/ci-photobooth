@@ -56,6 +56,17 @@ export default function Stickers({
     }
   };
 
+  // Immediate handler for Undo so it triggers on first press (mouse/touch)
+  const handleUndoImmediate = (e) => {
+    // Prevent the subsequent click from firing, so we don't need two clicks
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    if (e && typeof e.stopPropagation === "function") e.stopPropagation();
+    onUndo();
+    onChange(null);
+    const undoBtn = buttonRefs.current["undo"];
+    if (undoBtn && typeof undoBtn.blur === "function") undoBtn.blur();
+  };
+
   return (
     <div
       className={`w-full h-full flex flex-col items-center justify-center ${className}`}
@@ -73,7 +84,21 @@ export default function Stickers({
                 ? "bg-gray-200"
                 : "bg-transparent hover:bg-gray-200"
             }`}
-            onClick={() => handleStickerClick(sticker.id)}
+            // Use immediate press handlers for Undo to avoid needing two clicks
+            onMouseDown={
+              sticker.id === "undo" ? handleUndoImmediate : undefined
+            }
+            onTouchStart={
+              sticker.id === "undo" ? handleUndoImmediate : undefined
+            }
+            onClick={
+              sticker.id === "undo"
+                ? (e) => {
+                    // If click still happens (e.g., keyboard), run once
+                    handleUndoImmediate(e);
+                  }
+                : () => handleStickerClick(sticker.id)
+            }
             title={sticker.name}
             type="button"
           >
