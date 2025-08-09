@@ -1,4 +1,4 @@
-import { Lilita_One, Poppins } from "next/font/google";
+import { Lilita_One, Poppins, Cedarville_Cursive } from "next/font/google";
 import "./globals.css";
 
 const lilitaOne = Lilita_One({
@@ -13,6 +13,13 @@ const poppins = Poppins({
   weight: ["400", "700"],
 });
 
+const cedarville = Cedarville_Cursive({
+  variable: "--font-cedarville",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
 export const metadata = {
   title: "Snappy",
   description: "Pose and capture your cute moments!",
@@ -25,7 +32,9 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
         <link rel="icon" href="/images/favicon.png" type="image/png" />
       </head>
-      <body className={`${lilitaOne.variable} ${poppins.variable} antialiased`}>
+      <body
+        className={`${lilitaOne.variable} ${poppins.variable} ${cedarville.variable} antialiased`}
+      >
         {children}
       </body>
     </html>

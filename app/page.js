@@ -6,6 +6,7 @@ import Navbar from "./components/navbar";
 import Frames from "./components/frames";
 import Filters from "./components/filters";
 import Stickers from "./components/stickers";
+import Message from "./components/message";
 
 // SparkleBurst effect
 function SparkleBurst({ duration = 1200 }) {
@@ -1021,6 +1022,8 @@ export default function Page() {
     backgroundColor: "#ffffff",
     cornerRadius: "none",
   });
+  const [stripMessage, setStripMessage] = useState("");
+  const [showStripDate, setShowStripDate] = useState(true);
 
   // Function to get CSS filter based on selected filter
   const getFilterStyle = (filterType) => {
@@ -1502,7 +1505,7 @@ export default function Page() {
                           className="w-full h-full object-cover scale-x-[-1]"
                         />
                         {countdown !== null && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
+                          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                             <span className="text-white text-5xl font-bold drop-shadow-lg animate-pulse">
                               {countdown}
                             </span>
@@ -1627,7 +1630,7 @@ export default function Page() {
               }}
             >
               <div
-                className={`shadow-2xl flex flex-col items-center justify-center py-6 px-4 relative`}
+                className={`shadow-2xl flex flex-col items-center justify-center py-6 px-4 relative w-[16rem]`}
                 style={{
                   minHeight: 560,
                   minWidth: 100,
@@ -1666,9 +1669,8 @@ export default function Page() {
                 {/* Photo strip: vertical stack of captured images with gaps */}
                 {capturedImages.length > 0 ? (
                   <div
-                    className="flex flex-col items-center photostrip-container"
+                    className="flex flex-col items-center photostrip-container w-56"
                     style={{
-                      width: "100%",
                       position: "relative",
                       zIndex: 20,
                       outline: "none",
@@ -1851,22 +1853,22 @@ export default function Page() {
                   <div className="text-gray-400 text-2xl">No photos</div>
                 )}
 
-                {/* Message Space and Date */}
+                {/* Message Space and Date - reserve fixed space so height doesn't shift */}
                 {capturedImages.length > 0 && (
-                  <div className="w-full mt-6 text-center">
-                    {/* Message space - placeholder for future feature */}
-                    <div className="h-16 border-t border-gray-200 pt-2 mb-2">
-                      <div className="text-xs text-gray-400 italic">
-                        Message space (coming soon)
+                  <div className="w-full mt-6 text-center select-none">
+                    <div className="w-full border-t border-gray-200 pt-2 mb-2 px-3 flex justify-center">
+                      <div className="text-sm text-gray-700 whitespace-pre-wrap break-words break-all h-20 overflow-hidden w-full [font-family:var(--font-cedarville),cursive]">
+                        {stripMessage}
                       </div>
                     </div>
-                    {/* Date - at the very bottom */}
-                    <div className="text-sm text-gray-600">
-                      {new Date().toLocaleDateString("en-US", {
-                        month: "2-digit",
-                        day: "2-digit",
-                        year: "numeric",
-                      })}
+                    <div className="w-full text-xs text-black h-5 flex items-center justify-center">
+                      {showStripDate
+                        ? new Date().toLocaleDateString("en-US", {
+                            month: "2-digit",
+                            day: "2-digit",
+                            year: "numeric",
+                          })
+                        : ""}
                     </div>
                   </div>
                 )}
@@ -1881,7 +1883,7 @@ export default function Page() {
               style={{ animationDelay: showEditorAnim ? "160ms" : undefined }}
             >
               {/* Top row: Frames and Filters side by side */}
-              <div className="flex flex-row items-start gap-8">
+              <div className="flex flex-row items-stretch gap-8">
                 <div
                   className={
                     "bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]" +
@@ -1914,26 +1916,47 @@ export default function Page() {
                   />
                 </div>
               </div>
-              {/* Bottom row: Stickers card */}
-              <div
-                className={
-                  "bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]" +
-                  (showEditorAnim ? " editor-entrance" : "")
-                }
-                style={{ animationDelay: showEditorAnim ? "320ms" : undefined }}
-              >
-                <Stickers
-                  selected={selectedSticker}
-                  onChange={setSelectedSticker}
-                  onUndo={handleUndo}
-                  className="justify-start"
-                  onStickersInit={(arr) => (stickersRef.current = arr)}
-                />
-                {selectedSticker && (
-                  <div className="mt-4 text-xs text-gray-600 text-center">
-                    Click on the photo strip to place the sticker
+              {/* Bottom row: Stickers card + Message card side by side */}
+              <div className="flex flex-row items-start gap-8">
+                <div
+                  className={
+                    "bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[360px] min-w-[320px]" +
+                    (showEditorAnim ? " editor-entrance" : "")
+                  }
+                  style={{
+                    animationDelay: showEditorAnim ? "320ms" : undefined,
+                  }}
+                >
+                  <Stickers
+                    selected={selectedSticker}
+                    onChange={setSelectedSticker}
+                    onUndo={handleUndo}
+                    className="justify-start"
+                    onStickersInit={(arr) => (stickersRef.current = arr)}
+                  />
+                  <div className="mt-4 text-xs text-gray-600 text-center h-5 leading-5 overflow-hidden">
+                    {selectedSticker
+                      ? "Click on the photo strip to place the sticker"
+                      : ""}
                   </div>
-                )}
+                </div>
+                <div
+                  className={
+                    "bg-white shadow-lg flex flex-col items-center justify-start p-8 min-h-[360px] min-w-[320px]" +
+                    (showEditorAnim ? " editor-entrance" : "")
+                  }
+                  style={{
+                    animationDelay: showEditorAnim ? "360ms" : undefined,
+                  }}
+                >
+                  <Message
+                    value={stripMessage}
+                    onChange={setStripMessage}
+                    showDate={showStripDate}
+                    onToggleDate={setShowStripDate}
+                    className="justify-start"
+                  />
+                </div>
               </div>
             </div>
           </div>
