@@ -1056,6 +1056,55 @@ export default function Page() {
     }
   };
 
+  // Utilities to compute a readable text color against a given background
+  const parseColorToRgb = (color) => {
+    if (!color) return { r: 255, g: 255, b: 255 };
+    const named = {
+      white: { r: 255, g: 255, b: 255 },
+      black: { r: 0, g: 0, b: 0 },
+    };
+    const lower = String(color).toLowerCase().trim();
+    if (named[lower]) return named[lower];
+    if (lower.startsWith("#")) {
+      let hex = lower.slice(1);
+      if (hex.length === 3) {
+        hex = hex
+          .split("")
+          .map((c) => c + c)
+          .join("");
+      }
+      const intVal = parseInt(hex.slice(0, 6), 16);
+      return {
+        r: (intVal >> 16) & 255,
+        g: (intVal >> 8) & 255,
+        b: intVal & 255,
+      };
+    }
+    const rgbMatch = lower.match(
+      /rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/
+    );
+    if (rgbMatch) {
+      return { r: +rgbMatch[1], g: +rgbMatch[2], b: +rgbMatch[3] };
+    }
+    // Fallback to white
+    return { r: 255, g: 255, b: 255 };
+  };
+
+  const getRelativeLuminance = ({ r, g, b }) => {
+    const srgb = [r, g, b].map((v) => v / 255);
+    const linear = srgb.map((v) =>
+      v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+    );
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  };
+
+  const getContrastingTextColor = (backgroundColor) => {
+    const rgb = parseColorToRgb(backgroundColor);
+    const L = getRelativeLuminance(rgb);
+    // Threshold around mid-luminance; choose near-black for light bg, near-white for dark bg
+    return L > 0.5 ? "#111111" : "#FAFAFA";
+  };
+
   // Function to get frame styles based on selected frame and custom settings
   const getFrameStyle = (frameType, customSettings = {}) => {
     switch (frameType) {
@@ -1289,6 +1338,10 @@ export default function Page() {
     window.addEventListener("touchmove", move, { passive: true });
     window.addEventListener("touchend", up, { passive: true });
   };
+
+  // Determine dynamic text color for strip message/date based on current frame background
+  const currentFrameStyle = getFrameStyle(selectedFrame, customFrameSettings);
+  const stripTextColor = getContrastingTextColor(currentFrameStyle.background);
 
   return (
     <div
@@ -1796,7 +1849,7 @@ export default function Page() {
                                   alt="Placed sticker"
                                   className="w-full h-full object-contain"
                                   draggable={false}
-                                  title="Drag or click to remove"
+                                  title="Drag to move or click to remove"
                                 />
                               </div>
                             );
@@ -1843,7 +1896,7 @@ export default function Page() {
                               alt="Placed sticker"
                               className="w-full h-full object-contain"
                               draggable={false}
-                              title="Drag or click to remove"
+                              title="Drag to move or click to remove"
                             />
                           </div>
                         );
@@ -1857,11 +1910,17 @@ export default function Page() {
                 {capturedImages.length > 0 && (
                   <div className="w-full mt-6 text-center select-none">
                     <div className="w-full border-t border-gray-200 pt-2 mb-2 px-3 flex justify-center">
-                      <div className="text-sm text-gray-700 whitespace-pre-wrap break-words break-all h-20 overflow-hidden w-full [font-family:var(--font-cedarville),cursive]">
+                      <div
+                        className="text-md whitespace-pre-wrap break-words break-all h-20 overflow-hidden w-full [font-family:var(--font-cedarville),cursive]"
+                        style={{ color: stripTextColor }}
+                      >
                         {stripMessage}
                       </div>
                     </div>
-                    <div className="w-full text-xs text-black h-5 flex items-center justify-center">
+                    <div
+                      className="w-full text-xs h-5 flex items-center justify-center"
+                      style={{ color: stripTextColor }}
+                    >
                       {showStripDate
                         ? new Date().toLocaleDateString("en-US", {
                             month: "2-digit",
