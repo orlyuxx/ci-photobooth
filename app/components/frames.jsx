@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { HexColorPicker } from "react-colorful";
 
 export default function Frames({
@@ -6,12 +7,19 @@ export default function Frames({
   onChange = () => {},
   customSettings = {},
   onCustomSettingsChange = () => {},
+  onPopoverOpenChange = undefined,
 }) {
   const [showBorderColorPicker, setShowBorderColorPicker] = useState(false);
   const [showBackgroundColorPicker, setShowBackgroundColorPicker] =
     useState(false);
   const borderColorRef = useRef(null);
   const backgroundColorRef = useRef(null);
+  const borderBtnRef = useRef(null);
+  const backgroundBtnRef = useRef(null);
+  const borderPopoverRef = useRef(null);
+  const backgroundPopoverRef = useRef(null);
+  const [borderPos, setBorderPos] = useState({ top: 0, left: 0 });
+  const [backgroundPos, setBackgroundPos] = useState({ top: 0, left: 0 });
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -20,12 +28,24 @@ export default function Frames({
         borderColorRef.current &&
         !borderColorRef.current.contains(event.target)
       ) {
+        if (
+          borderPopoverRef.current &&
+          borderPopoverRef.current.contains(event.target)
+        ) {
+          return;
+        }
         setShowBorderColorPicker(false);
       }
       if (
         backgroundColorRef.current &&
         !backgroundColorRef.current.contains(event.target)
       ) {
+        if (
+          backgroundPopoverRef.current &&
+          backgroundPopoverRef.current.contains(event.target)
+        ) {
+          return;
+        }
         setShowBackgroundColorPicker(false);
       }
     }
@@ -35,8 +55,70 @@ export default function Frames({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Notify parent when any picker visibility changes
+  useEffect(() => {
+    if (typeof onPopoverOpenChange === "function") {
+      onPopoverOpenChange(showBorderColorPicker || showBackgroundColorPicker);
+    }
+  }, [showBorderColorPicker, showBackgroundColorPicker, onPopoverOpenChange]);
+
+  // Position calculators
+  useEffect(() => {
+    const updateBorderPos = () => {
+      const el = borderBtnRef.current || borderColorRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const gap = 8;
+      const left = Math.min(
+        Math.max(8, rect.left),
+        window.innerWidth - 240 // approximate picker width
+      );
+      const top = Math.min(
+        rect.bottom + gap,
+        window.innerHeight - 220 // approximate picker height
+      );
+      setBorderPos({ top, left });
+    };
+    if (showBorderColorPicker) {
+      updateBorderPos();
+      window.addEventListener("resize", updateBorderPos);
+      window.addEventListener("scroll", updateBorderPos, true);
+      return () => {
+        window.removeEventListener("resize", updateBorderPos);
+        window.removeEventListener("scroll", updateBorderPos, true);
+      };
+    }
+  }, [showBorderColorPicker]);
+
+  useEffect(() => {
+    const updateBackgroundPos = () => {
+      const el = backgroundBtnRef.current || backgroundColorRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const gap = 8;
+      const left = Math.min(Math.max(8, rect.left), window.innerWidth - 240);
+      const top = Math.min(rect.bottom + gap, window.innerHeight - 220);
+      setBackgroundPos({ top, left });
+    };
+    if (showBackgroundColorPicker) {
+      updateBackgroundPos();
+      window.addEventListener("resize", updateBackgroundPos);
+      window.addEventListener("scroll", updateBackgroundPos, true);
+      return () => {
+        window.removeEventListener("resize", updateBackgroundPos);
+        window.removeEventListener("scroll", updateBackgroundPos, true);
+      };
+    }
+  }, [showBackgroundColorPicker]);
+  const isPickerOpen = showBorderColorPicker || showBackgroundColorPicker;
+
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center">
+    <div
+      className={`w-full h-full flex flex-col items-center justify-center relative ${
+        isPickerOpen ? "z-50" : ""
+      }`}
+    >
       <span className="text-md font-bold text-black -mt-4 mb-6 text-center">
         Frames
       </span>
@@ -95,15 +177,11 @@ export default function Frames({
                   </span>
                   <div className="relative" ref={borderColorRef}>
                     <button
-                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer"
+                      ref={borderBtnRef}
+                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
                       style={{
                         backgroundColor: customSettings.borderColor || "black",
-                        backgroundImage:
-                          (
-                            customSettings.borderColor || "#000000"
-                          ).toLowerCase() === "#ffffff"
-                            ? "linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee)"
-                            : "none",
+                        backgroundImage: "none",
                         backgroundSize: "8px 8px",
                         backgroundPosition: "0 0, 4px 4px",
                       }}
@@ -114,27 +192,38 @@ export default function Frames({
                         });
                       }}
                     />
-                    {showBorderColorPicker && (
-                      <div className="absolute top-full left-0 mt-2 z-20 bg-white p-3 rounded shadow-lg border border-gray-300">
-                        <HexColorPicker
-                          color={customSettings.borderColor || "#000000"}
-                          onChange={(color) =>
-                            onCustomSettingsChange({
-                              ...customSettings,
-                              borderColor: color,
-                            })
-                          }
-                        />
-                        <div className="flex justify-end mt-2">
-                          <button
-                            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
-                            onClick={() => setShowBorderColorPicker(false)}
-                          >
-                            Close
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    {showBorderColorPicker &&
+                      typeof window !== "undefined" &&
+                      createPortal(
+                        <div
+                          ref={borderPopoverRef}
+                          className="z-[9999] bg-white p-3 rounded shadow-lg border border-gray-300"
+                          style={{
+                            position: "fixed",
+                            top: borderPos.top,
+                            left: borderPos.left,
+                          }}
+                        >
+                          <HexColorPicker
+                            color={customSettings.borderColor || "#000000"}
+                            onChange={(color) =>
+                              onCustomSettingsChange({
+                                ...customSettings,
+                                borderColor: color,
+                              })
+                            }
+                          />
+                          <div className="flex justify-end mt-2">
+                            <button
+                              className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
+                              onClick={() => setShowBorderColorPicker(false)}
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </div>,
+                        document.body
+                      )}
                   </div>
                 </div>
                 {/* Background Color */}
@@ -144,7 +233,8 @@ export default function Frames({
                   </span>
                   <div className="relative" ref={backgroundColorRef}>
                     <button
-                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer"
+                      ref={backgroundBtnRef}
+                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
                       style={{
                         backgroundColor:
                           customSettings.backgroundColor || "white",
@@ -159,27 +249,40 @@ export default function Frames({
                         });
                       }}
                     />
-                    {showBackgroundColorPicker && (
-                      <div className="absolute top-full left-0 mt-2 z-20 bg-white p-3 rounded shadow-lg border border-gray-300">
-                        <HexColorPicker
-                          color={customSettings.backgroundColor || "#ffffff"}
-                          onChange={(color) =>
-                            onCustomSettingsChange({
-                              ...customSettings,
-                              backgroundColor: color,
-                            })
-                          }
-                        />
-                        <div className="flex justify-end mt-2">
-                          <button
-                            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
-                            onClick={() => setShowBackgroundColorPicker(false)}
-                          >
-                            Close
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    {showBackgroundColorPicker &&
+                      typeof window !== "undefined" &&
+                      createPortal(
+                        <div
+                          ref={backgroundPopoverRef}
+                          className="z-[9999] bg-white p-3 rounded shadow-lg border border-gray-300"
+                          style={{
+                            position: "fixed",
+                            top: backgroundPos.top,
+                            left: backgroundPos.left,
+                          }}
+                        >
+                          <HexColorPicker
+                            color={customSettings.backgroundColor || "#ffffff"}
+                            onChange={(color) =>
+                              onCustomSettingsChange({
+                                ...customSettings,
+                                backgroundColor: color,
+                              })
+                            }
+                          />
+                          <div className="flex justify-end mt-2">
+                            <button
+                              className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
+                              onClick={() =>
+                                setShowBackgroundColorPicker(false)
+                              }
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </div>,
+                        document.body
+                      )}
                   </div>
                 </div>
               </div>

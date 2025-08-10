@@ -738,6 +738,7 @@ export default function Page() {
   const [showRefreshAnim, setShowRefreshAnim] = useState(false); // refresh sweep animation
   const [showPageTransition, setShowPageTransition] = useState(false); // transition to editor
   const [showEditorAnim, setShowEditorAnim] = useState(false); // animate editor components in
+  const [isFramesPopoverOpen, setIsFramesPopoverOpen] = useState(false);
 
   // Add mounted state to prevent FOUC
   const [mounted, setMounted] = useState(false);
@@ -1946,10 +1947,12 @@ export default function Page() {
                 <div
                   className={
                     "bg-white shadow-lg flex flex-col items-center justify-center p-8 min-h-[140px] min-w-[320px]" +
-                    (showEditorAnim ? " editor-entrance" : "")
+                    (showEditorAnim ? " editor-entrance" : "") +
+                    (isFramesPopoverOpen ? " relative z-50" : "")
                   }
                   style={{
                     animationDelay: showEditorAnim ? "220ms" : undefined,
+                    overflow: "visible",
                   }}
                 >
                   <Frames
@@ -1957,6 +1960,7 @@ export default function Page() {
                     onChange={setSelectedFrame}
                     customSettings={customFrameSettings}
                     onCustomSettingsChange={setCustomFrameSettings}
+                    onPopoverOpenChange={setIsFramesPopoverOpen}
                   />
                 </div>
                 <div
