@@ -8,6 +8,358 @@ import Filters from "./components/filters";
 import Stickers from "./components/stickers";
 import Message from "./components/message";
 
+const applyCanvasFilter = (canvas, ctx, filterType) => {
+  if (filterType === "none") return;
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  switch (filterType) {
+    case "grayscale":
+      for (let i = 0; i < data.length; i += 4) {
+        const gray =
+          data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+        data[i] = gray; // Red
+        data[i + 1] = gray; // Green
+        data[i + 2] = gray; // Blue
+      }
+      break;
+
+    case "brightness":
+      const brightnessFactor = 1.3;
+      const contrastFactor = 1.1;
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.min(
+          255,
+          (data[i] - 128) * contrastFactor + 128 + (brightnessFactor - 1) * 255
+        );
+        data[i + 1] = Math.min(
+          255,
+          (data[i + 1] - 128) * contrastFactor +
+            128 +
+            (brightnessFactor - 1) * 255
+        );
+        data[i + 2] = Math.min(
+          255,
+          (data[i + 2] - 128) * contrastFactor +
+            128 +
+            (brightnessFactor - 1) * 255
+        );
+      }
+      break;
+
+    case "sepia":
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        data[i] = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
+        data[i + 1] = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
+        data[i + 2] = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
+      }
+      break;
+
+    case "blue":
+      // Intense blue tone effect
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        // Desaturate slightly, then shift hue towards blue and increase saturation
+        const gray = r * 0.299 + g * 0.587 + b * 0.114;
+        const mixFactor = 0.2;
+
+        let newR = gray * mixFactor + r * (1 - mixFactor);
+        let newG = gray * mixFactor + g * (1 - mixFactor);
+        let newB = gray * mixFactor + b * (1 - mixFactor);
+
+        // Shift towards blue and increase saturation
+        newR = newR * 0.2 + newB * 0.1;
+        newG = newG * 0.4 + newB * 0.1;
+        newB = Math.min(255, newB * 2.5);
+
+        data[i] = Math.max(0, Math.min(255, newR * 0.92));
+        data[i + 1] = Math.max(0, Math.min(255, newG * 0.92));
+        data[i + 2] = Math.max(0, Math.min(255, newB * 0.92));
+      }
+      break;
+
+    case "red":
+      // Deep red tone effect
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        // Shift towards red and increase saturation
+        const newR = Math.min(255, r * 2.2 + g * 0.1);
+        const newG = Math.max(0, g * 0.3 + r * 0.1);
+        const newB = Math.max(0, b * 0.3 + r * 0.1);
+
+        data[i] = newR * 0.9;
+        data[i + 1] = newG * 0.9;
+        data[i + 2] = newB * 0.9;
+      }
+      break;
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+};
+
+// Move getFrameStyle outside the component so it's accessible to createFilteredPhotoStrip
+const getFrameStyle = (frameType, customSettings = {}) => {
+  switch (frameType) {
+    case "classic":
+      return {
+        background: "#fff",
+        border: "none",
+        borderRadius: 0,
+      };
+    case "film":
+      return {
+        background: "#111",
+        border: "none",
+        borderRadius: 0,
+      };
+    case "modern":
+      return {
+        background: "#fff",
+        border: "2px solid #000",
+        borderRadius: 4, // smaller radius for the strip
+      };
+    case "custom":
+      // For the custom frame, the strip container should have no border radius
+      return {
+        background: customSettings.backgroundColor || "white",
+        border: `2px solid ${customSettings.borderColor || "black"}`,
+        borderRadius: 0,
+      };
+    default:
+      return {
+        background: "#fff",
+        border: "none",
+        borderRadius: 0,
+      };
+  }
+};
+
+// Move getContrastingTextColor outside the component as well since it's used by createFilteredPhotoStrip
+const parseColorToRgb = (color) => {
+  if (!color) return { r: 255, g: 255, b: 255 };
+  const named = {
+    white: { r: 255, g: 255, b: 255 },
+    black: { r: 0, g: 0, b: 0 },
+  };
+  const lower = String(color).toLowerCase().trim();
+  if (named[lower]) return named[lower];
+  if (lower.startsWith("#")) {
+    let hex = lower.slice(1);
+    if (hex.length === 3) {
+      hex = hex
+        .split("")
+        .map((c) => c + c)
+        .join("");
+    }
+    const intVal = parseInt(hex.slice(0, 6), 16);
+    return {
+      r: (intVal >> 16) & 255,
+      g: (intVal >> 8) & 255,
+      b: intVal & 255,
+    };
+  }
+  const rgbMatch = lower.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+  if (rgbMatch) {
+    return { r: +rgbMatch[1], g: +rgbMatch[2], b: +rgbMatch[3] };
+  }
+  // Fallback to white
+  return { r: 255, g: 255, b: 255 };
+};
+
+const getRelativeLuminance = ({ r, g, b }) => {
+  const srgb = [r, g, b].map((v) => v / 255);
+  const linear = srgb.map((v) =>
+    v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+  );
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+};
+
+const getContrastingTextColor = (backgroundColor) => {
+  const rgb = parseColorToRgb(backgroundColor);
+  const L = getRelativeLuminance(rgb);
+  // Threshold around mid-luminance; choose near-black for light bg, near-white for dark bg
+  return L > 0.5 ? "#111111" : "#FAFAFA";
+};
+
+const createFilteredPhotoStrip = async (
+  capturedImages,
+  selectedFilter,
+  selectedFrame,
+  customFrameSettings,
+  stripMessage,
+  showStripDate,
+  placedStickers,
+  stickersRef
+) => {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  // Set canvas dimensions for photo strip (adjust as needed)
+  const stripWidth = 256; // 16rem = 256px
+  const photoHeight = 160; // 40 * 4 = 160px (w-56 h-40)
+  const photoSpacing = 16; // gap between photos
+  const padding = 24; // padding around strip
+  const messageSpace = 100; // space for message and date
+
+  canvas.width = stripWidth;
+  canvas.height =
+    photoHeight * capturedImages.length +
+    photoSpacing * (capturedImages.length - 1) +
+    padding * 2 +
+    messageSpace;
+
+  // Apply frame background
+  const frameStyle = getFrameStyle(selectedFrame, customFrameSettings);
+  ctx.fillStyle = frameStyle.background || "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw frame border if needed
+  if (frameStyle.border && frameStyle.border !== "none") {
+    const borderWidth = parseInt(
+      frameStyle.border.match(/(\d+)px/)?.[1] || "2"
+    );
+    const borderColor =
+      frameStyle.border.match(
+        /(#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}|[a-zA-Z]+)/
+      )?.[0] || "#000000";
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = borderWidth;
+    ctx.strokeRect(
+      borderWidth / 2,
+      borderWidth / 2,
+      canvas.width - borderWidth,
+      canvas.height - borderWidth
+    );
+  }
+
+  // Draw sprocket holes for film frame
+  if (selectedFrame === "film") {
+    ctx.fillStyle = "#ffffff";
+    const holeWidth = 8; // 2 * 4 = 8px (w-2)
+    const holeHeight = 12; // 3 * 4 = 12px (h-3)
+    const holeSpacing = 24; // spacing between holes
+
+    // Left sprocket holes
+    for (let i = 0; i < 18; i++) {
+      const y = i * holeSpacing + 24;
+      ctx.fillRect(0, y, holeWidth, holeHeight);
+    }
+
+    // Right sprocket holes
+    for (let i = 0; i < 18; i++) {
+      const y = i * holeSpacing + 24;
+      ctx.fillRect(canvas.width - holeWidth, y, holeWidth, holeHeight);
+    }
+  }
+
+  // Process each photo
+  for (let i = 0; i < capturedImages.length; i++) {
+    await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const y = padding + i * (photoHeight + photoSpacing);
+        const x = (stripWidth - 224) / 2; // Center photo (224px = w-56)
+
+        // Create temporary canvas for this photo to apply filter
+        const tempCanvas = document.createElement("canvas");
+        const tempCtx = tempCanvas.getContext("2d");
+        tempCanvas.width = 224;
+        tempCanvas.height = photoHeight;
+
+        // Draw image to temp canvas
+        tempCtx.drawImage(img, 0, 0, 224, photoHeight);
+
+        // Apply filter
+        applyCanvasFilter(tempCanvas, tempCtx, selectedFilter);
+
+        // Draw filtered image to main canvas
+        ctx.drawImage(tempCanvas, x, y);
+
+        // Add photo frame styling if needed
+        if (selectedFrame === "film") {
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 4;
+          ctx.strokeRect(x - 4, y - 4, 224 + 8, photoHeight + 8);
+        } else if (selectedFrame === "modern") {
+          ctx.strokeStyle = "#e5e7eb";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x - 2, y - 2, 224 + 4, photoHeight + 4);
+        }
+
+        resolve();
+      };
+      img.src = capturedImages[i];
+    });
+  }
+
+  // Draw stickers
+  for (const sticker of placedStickers) {
+    const stickerObj = stickersRef.current.find(
+      (s) => s.id === sticker.stickerId
+    );
+    if (stickerObj) {
+      await new Promise((resolve) => {
+        const stickerImg = new Image();
+        stickerImg.onload = () => {
+          const stickerSize = 30;
+          ctx.drawImage(
+            stickerImg,
+            sticker.x - stickerSize / 2,
+            sticker.y - stickerSize / 2,
+            stickerSize,
+            stickerSize
+          );
+          resolve();
+        };
+        stickerImg.src = stickerObj.src;
+      });
+    }
+  }
+
+  // Draw message and date
+  if (stripMessage || showStripDate) {
+    const textY = canvas.height - messageSpace + 20;
+    const stripTextColor = getContrastingTextColor(frameStyle.background);
+
+    // Message
+    if (stripMessage) {
+      ctx.fillStyle = stripTextColor;
+      ctx.font = '16px "Cedarville Cursive", cursive';
+      ctx.textAlign = "center";
+      const lines = stripMessage.split("\n");
+      lines.forEach((line, i) => {
+        ctx.fillText(line, canvas.width / 2, textY + i * 20);
+      });
+    }
+
+    // Date
+    if (showStripDate) {
+      ctx.fillStyle = stripTextColor;
+      ctx.font = "12px Arial, sans-serif";
+      ctx.textAlign = "center";
+      const dateStr = new Date().toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      });
+      ctx.fillText(dateStr, canvas.width / 2, canvas.height - 20);
+    }
+  }
+
+  return canvas.toDataURL("image/png");
+};
+
 // SparkleBurst effect
 function SparkleBurst({ duration = 1200 }) {
   return (
@@ -1295,7 +1647,6 @@ export default function Page() {
     clone.style.minHeight = `${Math.ceil(rect.height)}px`;
     clone.style.boxSizing = "border-box";
     clone.style.boxShadow = "none";
-    clone.style.filter = "none";
     clone.style.background = computedBg;
 
     // Hide the transparent absolute overlay inside the photostrip container
@@ -2136,6 +2487,39 @@ export default function Page() {
             onSettingsOpen={handleSettingsOpen}
             onDownload={async () => {
               try {
+                if (capturedImages.length === 0) return;
+
+                // Try canvas approach first (with filters)
+                const dataUrl = await createFilteredPhotoStrip(
+                  capturedImages,
+                  selectedFilter,
+                  selectedFrame,
+                  customFrameSettings,
+                  stripMessage,
+                  showStripDate,
+                  placedStickers,
+                  stickersRef
+                );
+
+                if (dataUrl) {
+                  const link = document.createElement("a");
+                  const ts = new Date()
+                    .toISOString()
+                    .replace(/[:.]/g, "-")
+                    .slice(0, 19);
+                  link.href = dataUrl;
+                  link.download = `snappy-photostrip-${ts}.png`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  return; // Success, exit early
+                }
+              } catch (err) {
+                console.error("Canvas download failed, trying fallback", err);
+              }
+
+              // FALLBACK: Your original code (in case canvas fails)
+              try {
                 if (!stripRootRef.current) return;
                 const el = stripRootRef.current;
 
@@ -2206,8 +2590,7 @@ export default function Page() {
                   document.body.removeChild(link);
                 }
               } catch (err) {
-                // Fail silently for now; could show a toast in future
-                console.error("Download failed", err);
+                console.error("All download methods failed", err);
               }
             }}
             onCapture={handleCapture}
