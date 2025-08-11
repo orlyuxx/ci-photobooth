@@ -1208,6 +1208,111 @@ export default function Page() {
   // Refs to constrain dragging of placed stickers
   const photostripRef = useRef(null);
   const photoContainersRef = useRef({});
+  // Ref to capture the entire strip (including frame, stickers, message, and date)
+  const stripRootRef = useRef(null);
+
+  // Lazy loader for html2canvas with CDN fallback (avoids bundler install issues)
+  const loadHtml2Canvas = async () => {
+    if (typeof window === "undefined") return null;
+    if (window.html2canvas) return window.html2canvas;
+    // Attempt dynamic import first (in case dependency is installed)
+    try {
+      const mod = await import("html2canvas");
+      return mod.default || mod;
+    } catch (_) {
+      // Fallback to CDN
+      await new Promise((resolve, reject) => {
+        const existing = document.querySelector(
+          'script[data-lib="html2canvas-cdn"]'
+        );
+        if (existing) {
+          existing.addEventListener("load", () => resolve());
+          existing.addEventListener("error", reject);
+          return;
+        }
+        const script = document.createElement("script");
+        script.src =
+          "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+        script.async = true;
+        script.crossOrigin = "anonymous";
+        script.setAttribute("data-lib", "html2canvas-cdn");
+        script.onload = () => resolve();
+        script.onerror = (e) => reject(e);
+        document.head.appendChild(script);
+      });
+      return window.html2canvas || null;
+    }
+  };
+
+  // Fallback: load dom-to-image-more from CDN if needed
+  const loadDomToImage = async () => {
+    if (typeof window === "undefined") return null;
+    if (window.domtoimage) return window.domtoimage;
+    await new Promise((resolve, reject) => {
+      const existing = document.querySelector(
+        'script[data-lib="dom-to-image-more-cdn"]'
+      );
+      if (existing) {
+        existing.addEventListener("load", () => resolve());
+        existing.addEventListener("error", reject);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src =
+        "https://cdn.jsdelivr.net/npm/dom-to-image-more@3.4.1/dist/dom-to-image-more.min.js";
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.setAttribute("data-lib", "dom-to-image-more-cdn");
+      script.onload = () => resolve();
+      script.onerror = (e) => reject(e);
+      document.head.appendChild(script);
+    });
+    return window.domtoimage || null;
+  };
+
+  // Prepare a clean offscreen clone of the strip for pixel-accurate capture
+  const createCaptureTarget = (sourceEl) => {
+    const rect = sourceEl.getBoundingClientRect();
+    const computed = window.getComputedStyle(sourceEl);
+    const computedBg =
+      computed.backgroundColor && computed.backgroundColor !== "transparent"
+        ? computed.backgroundColor
+        : "#ffffff";
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "fixed";
+    wrapper.style.left = "-10000px";
+    wrapper.style.top = "-10000px";
+    wrapper.style.zIndex = "-1";
+    wrapper.style.padding = "0";
+    wrapper.style.margin = "0";
+    wrapper.style.isolation = "isolate";
+
+    const clone = sourceEl.cloneNode(true);
+    // Ensure explicit size and remove shadows on the clone root
+    clone.style.width = `${Math.ceil(rect.width)}px`;
+    clone.style.minWidth = `${Math.ceil(rect.width)}px`;
+    clone.style.height = `${Math.ceil(rect.height)}px`;
+    clone.style.minHeight = `${Math.ceil(rect.height)}px`;
+    clone.style.boxSizing = "border-box";
+    clone.style.boxShadow = "none";
+    clone.style.filter = "none";
+    clone.style.background = computedBg;
+
+    // Hide the transparent absolute overlay inside the photostrip container
+    try {
+      const overlay = clone.querySelector(".photostrip-container > .absolute");
+      if (overlay) overlay.style.display = "none";
+    } catch {}
+
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+    return {
+      wrapper,
+      clone,
+      width: Math.ceil(rect.width),
+      height: Math.ceil(rect.height),
+    };
+  };
   // Track placement gesture on the strip to avoid duplicate placement during drag
   const stripPlaceRef = useRef({
     isPlacing: false,
@@ -1645,6 +1750,7 @@ export default function Page() {
             canRetake={canRetake}
             onRetake={handleRetake}
             onPrint={handlePrint}
+            isEditorStep={false}
           />
         </>
       )}
@@ -1684,6 +1790,7 @@ export default function Page() {
               }}
             >
               <div
+                ref={stripRootRef}
                 className={`shadow-2xl flex flex-col items-center justify-center py-6 px-4 relative w-[16rem]`}
                 style={{
                   minHeight: 560,
@@ -2027,11 +2134,84 @@ export default function Page() {
           <Navbar
             showPhotobooth={true}
             onSettingsOpen={handleSettingsOpen}
+            onDownload={async () => {
+              try {
+                if (!stripRootRef.current) return;
+                const el = stripRootRef.current;
+                // Ensure fonts are ready for accurate rendering
+                if (
+                  document.fonts &&
+                  typeof document.fonts.ready?.then === "function"
+                ) {
+                  try {
+                    await document.fonts.ready;
+                  } catch {}
+                }
+                let dataUrl = null;
+                // Work on a clean offscreen clone to avoid shadows/extra background
+                const { wrapper, clone, width, height } =
+                  createCaptureTarget(el);
+                // Try html2canvas first
+                try {
+                  const html2canvas = await loadHtml2Canvas();
+                  if (html2canvas) {
+                    const canvas = await html2canvas(clone, {
+                      backgroundColor: computed.backgroundColor || "#ffffff",
+                      scale: 2,
+                      useCORS: true,
+                      logging: false,
+                    });
+                    dataUrl = canvas.toDataURL("image/png");
+                  }
+                } catch (e) {
+                  // Fall through to dom-to-image-more on parsing errors (e.g., oklch)
+                }
+                // Fallback to dom-to-image-more if needed
+                if (!dataUrl) {
+                  const domtoimage = await loadDomToImage();
+                  if (!domtoimage) return;
+                  const scale = 2;
+                  dataUrl = await domtoimage.toPng(clone, {
+                    quality: 1,
+                    bgcolor: computed.backgroundColor || "#ffffff",
+                    width: width * scale,
+                    height: height * scale,
+                    style: {
+                      transform: `scale(${scale})`,
+                      transformOrigin: "top left",
+                      width: `${width}px`,
+                      height: `${height}px`,
+                    },
+                    filter: () => true,
+                  });
+                }
+                // Clean up the offscreen DOM
+                try {
+                  document.body.removeChild(wrapper);
+                } catch {}
+                if (dataUrl) {
+                  const link = document.createElement("a");
+                  const ts = new Date()
+                    .toISOString()
+                    .replace(/[:.]/g, "-")
+                    .slice(0, 19);
+                  link.href = dataUrl;
+                  link.download = `snappy-photostrip-${ts}.png`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
+              } catch (err) {
+                // Fail silently for now; could show a toast in future
+                console.error("Download failed", err);
+              }
+            }}
             onCapture={handleCapture}
             isCapturing={isCapturing}
             canRetake={canRetake}
             onRetake={handleRetake}
             onPrint={handlePrint}
+            isEditorStep={true}
           />
         </div>
       )}

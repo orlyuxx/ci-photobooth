@@ -5,11 +5,13 @@ import React from "react";
 const Navbar = ({
   showPhotobooth,
   onSettingsOpen,
+  onDownload,
   onCapture,
   isCapturing,
   canRetake,
   onRetake,
   onPrint,
+  isEditorStep,
 }) => {
   return (
     <div
@@ -19,18 +21,26 @@ const Navbar = ({
       style={{ transitionDelay: "400ms" }}
     >
       <div className="mini-navbar-animate flex bg-white/80 backdrop-blur-lg rounded-xl shadow-xl px-2 py-1 gap-1 border border-white/60 transition-all duration-200">
-        {/* Settings */}
+        {/* Settings / Download (in editor) */}
         <button
           className={`mini-nav-btn${
             isCapturing ? " mini-nav-btn-disabled" : ""
           }`}
-          aria-label="Settings"
+          aria-label={isEditorStep ? "Download" : "Settings"}
           type="button"
-          onClick={isCapturing ? undefined : onSettingsOpen}
+          onClick={
+            isCapturing ? undefined : isEditorStep ? onDownload : onSettingsOpen
+          }
           disabled={isCapturing}
         >
           <span className="bg-gray-200 rounded-full flex items-center justify-center p-1.5">
-            <img src="/images/setting.png" alt="Settings" className="w-5 h-5" />
+            <img
+              src={
+                isEditorStep ? "/images/download.png" : "/images/setting.png"
+              }
+              alt={isEditorStep ? "Download" : "Settings"}
+              className="w-5 h-5"
+            />
           </span>
         </button>
         {/* Camera/Capture or Retake */}
