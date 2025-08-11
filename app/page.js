@@ -2017,7 +2017,7 @@ export default function Page() {
                 {/* Message Space and Date - reserve fixed space so height doesn't shift */}
                 {capturedImages.length > 0 && (
                   <div className="w-full mt-6 text-center select-none">
-                    <div className="w-full border-t border-gray-200 pt-2 mb-2 px-3 flex justify-center">
+                    <div className="w-full pt-2 mb-2 px-3 flex justify-center">
                       <div
                         className="text-md whitespace-pre-wrap break-words break-all h-20 overflow-hidden w-full [font-family:var(--font-cedarville),cursive]"
                         style={{ color: stripTextColor }}
@@ -2138,6 +2138,10 @@ export default function Page() {
               try {
                 if (!stripRootRef.current) return;
                 const el = stripRootRef.current;
+
+                // Get computed styles for the element
+                const computed = window.getComputedStyle(el);
+
                 // Ensure fonts are ready for accurate rendering
                 if (
                   document.fonts &&
