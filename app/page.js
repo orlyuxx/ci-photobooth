@@ -127,14 +127,13 @@ const getFrameStyle = (frameType, customSettings = {}) => {
       return {
         background: "#fff",
         border: "2px solid #000",
-        borderRadius: 4, // smaller radius for the strip
+        borderRadius: 8, // Add border radius for the strip container
       };
     case "custom":
-      // For the custom frame, the strip container should have no border radius
       return {
         background: customSettings.backgroundColor || "white",
         border: `2px solid ${customSettings.borderColor || "black"}`,
-        borderRadius: 0,
+        borderRadius: customSettings.stripBorderRadius || 0, // Add support for custom strip border radius
       };
     default:
       return {
@@ -224,7 +223,15 @@ const createFilteredPhotoStrip = async (
   // Apply frame background
   const frameStyle = getFrameStyle(selectedFrame, customFrameSettings);
   ctx.fillStyle = frameStyle.background || "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // If there's a border radius, use roundRect instead of fillRect
+  if (frameStyle.borderRadius > 0) {
+    ctx.beginPath();
+    ctx.roundRect(0, 0, canvas.width, canvas.height, frameStyle.borderRadius);
+    ctx.fill();
+  } else {
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   // Draw frame border if needed
   if (frameStyle.border && frameStyle.border !== "none") {
@@ -235,14 +242,29 @@ const createFilteredPhotoStrip = async (
       frameStyle.border.match(
         /(#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}|[a-zA-Z]+)/
       )?.[0] || "#000000";
+
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = borderWidth;
-    ctx.strokeRect(
-      borderWidth / 2,
-      borderWidth / 2,
-      canvas.width - borderWidth,
-      canvas.height - borderWidth
-    );
+
+    // Use roundRect for border if there's a border radius
+    if (frameStyle.borderRadius > 0) {
+      ctx.beginPath();
+      ctx.roundRect(
+        borderWidth / 2,
+        borderWidth / 2,
+        canvas.width - borderWidth,
+        canvas.height - borderWidth,
+        Math.max(0, frameStyle.borderRadius - borderWidth / 2)
+      );
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(
+        borderWidth / 2,
+        borderWidth / 2,
+        canvas.width - borderWidth,
+        canvas.height - borderWidth
+      );
+    }
   }
 
   // Draw sprocket holes for film frame - FIXED to match editor exactly
