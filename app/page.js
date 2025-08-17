@@ -26,25 +26,24 @@ const applyCanvasFilter = (canvas, ctx, filterType) => {
       break;
 
     case "brightness":
+      // Match CSS filter: brightness(1.3) contrast(1.1)
       const brightnessFactor = 1.3;
       const contrastFactor = 1.1;
       for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.min(
-          255,
-          (data[i] - 128) * contrastFactor + 128 + (brightnessFactor - 1) * 255
-        );
-        data[i + 1] = Math.min(
-          255,
-          (data[i + 1] - 128) * contrastFactor +
-            128 +
-            (brightnessFactor - 1) * 255
-        );
-        data[i + 2] = Math.min(
-          255,
-          (data[i + 2] - 128) * contrastFactor +
-            128 +
-            (brightnessFactor - 1) * 255
-        );
+        // Apply brightness first (multiply by factor)
+        let r = data[i] * brightnessFactor;
+        let g = data[i + 1] * brightnessFactor;
+        let b = data[i + 2] * brightnessFactor;
+
+        // Apply contrast (shift around midpoint 128)
+        r = (r - 128) * contrastFactor + 128;
+        g = (g - 128) * contrastFactor + 128;
+        b = (b - 128) * contrastFactor + 128;
+
+        // Clamp values to 0-255 range
+        data[i] = Math.max(0, Math.min(255, r));
+        data[i + 1] = Math.max(0, Math.min(255, g));
+        data[i + 2] = Math.max(0, Math.min(255, b));
       }
       break;
 
