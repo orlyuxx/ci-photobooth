@@ -84,10 +84,10 @@ const Navbar = ({
             </span>
           </button>
         )}
-        {/* Print (enabled after photos taken) */}
+        {/* Print/Edit (enabled after photos taken) */}
         <button
           className={`mini-nav-btn${canRetake ? "" : " mini-nav-btn-disabled"}`}
-          aria-label="Print"
+          aria-label={isEditorStep ? "Print" : "Edit"}
           type="button"
           disabled={!canRetake}
           onClick={
@@ -95,7 +95,11 @@ const Navbar = ({
           }
         >
           <span className="bg-gray-200 rounded-full flex items-center justify-center p-1.5">
-            <img src="/images/printer.png" alt="Print" className="w-5 h-5" />
+            <img
+              src={isEditorStep ? "/images/printer.png" : "/images/edit.png"}
+              alt={isEditorStep ? "Print" : "Edit"}
+              className="w-5 h-5"
+            />
           </span>
         </button>
       </div>
