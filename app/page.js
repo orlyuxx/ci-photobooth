@@ -192,6 +192,7 @@ const getContrastingTextColor = (backgroundColor) => {
   return L > 0.5 ? "#111111" : "#FAFAFA";
 };
 
+// Updated createFilteredPhotoStrip function to match editor preview exactly
 const createFilteredPhotoStrip = async (
   capturedImages,
   selectedFilter,
@@ -205,12 +206,13 @@ const createFilteredPhotoStrip = async (
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
-  // Set canvas dimensions for photo strip (adjust as needed)
-  const stripWidth = 256; // 16rem = 256px
-  const photoHeight = 160; // 40 * 4 = 160px (w-56 h-40)
-  const photoSpacing = 16; // gap between photos
-  const padding = 24; // padding around strip
-  const messageSpace = 100; // space for message and date
+  // Match the editor dimensions exactly
+  const stripWidth = 256; // 16rem = 256px (w-64)
+  const photoWidth = 224; // 14rem = 224px (w-56)
+  const photoHeight = 160; // 10rem = 160px (h-40)
+  const photoSpacing = 16; // 1rem = 16px (mb-4)
+  const padding = 24; // 1.5rem = 24px (py-6)
+  const messageSpace = stripMessage || showStripDate ? 120 : 40; // More space for message/date
 
   canvas.width = stripWidth;
   canvas.height =
@@ -243,58 +245,137 @@ const createFilteredPhotoStrip = async (
     );
   }
 
-  // Draw sprocket holes for film frame
+  // Draw sprocket holes for film frame - FIXED to match editor exactly
   if (selectedFrame === "film") {
     ctx.fillStyle = "#ffffff";
-    const holeWidth = 8; // 2 * 4 = 8px (w-2)
-    const holeHeight = 12; // 3 * 4 = 12px (h-3)
-    const holeSpacing = 24; // spacing between holes
+    const holeWidth = 8; // w-2 = 8px
+    const holeHeight = 12; // h-3 = 12px
 
-    // Left sprocket holes
-    for (let i = 0; i < 18; i++) {
-      const y = i * holeSpacing + 24;
-      ctx.fillRect(0, y, holeWidth, holeHeight);
-    }
+    // Calculate exact spacing to match editor: 18 holes with even distribution
+    const totalHoles = 18;
+    const availableHeight = canvas.height - padding * 2; // Remove top and bottom padding
+    const holeSpacing = availableHeight / (totalHoles - 1); // Space between hole centers
 
-    // Right sprocket holes
-    for (let i = 0; i < 18; i++) {
-      const y = i * holeSpacing + 24;
-      ctx.fillRect(canvas.width - holeWidth, y, holeWidth, holeHeight);
+    // Left and right sprocket holes
+    for (let i = 0; i < totalHoles; i++) {
+      const centerY = padding + i * holeSpacing;
+      const holeY = centerY - holeHeight / 2; // Center the hole vertically
+
+      // Only draw if the hole fits within the canvas bounds
+      if (holeY >= 0 && holeY + holeHeight <= canvas.height) {
+        // Left sprocket holes
+        ctx.beginPath();
+        ctx.roundRect(0, holeY, holeWidth, holeHeight, 2);
+        ctx.fill();
+
+        // Right sprocket holes
+        ctx.beginPath();
+        ctx.roundRect(
+          canvas.width - holeWidth,
+          holeY,
+          holeWidth,
+          holeHeight,
+          2
+        );
+        ctx.fill();
+      }
     }
   }
 
-  // Process each photo
+  // Process each photo with exact editor styling
   for (let i = 0; i < capturedImages.length; i++) {
     await new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
         const y = padding + i * (photoHeight + photoSpacing);
-        const x = (stripWidth - 224) / 2; // Center photo (224px = w-56)
+        const x = (stripWidth - photoWidth) / 2; // Center photo exactly like editor
 
         // Create temporary canvas for this photo to apply filter
         const tempCanvas = document.createElement("canvas");
         const tempCtx = tempCanvas.getContext("2d");
-        tempCanvas.width = 224;
+        tempCanvas.width = photoWidth;
         tempCanvas.height = photoHeight;
 
         // Draw image to temp canvas
-        tempCtx.drawImage(img, 0, 0, 224, photoHeight);
+        tempCtx.drawImage(img, 0, 0, photoWidth, photoHeight);
 
         // Apply filter
         applyCanvasFilter(tempCanvas, tempCtx, selectedFilter);
 
-        // Draw filtered image to main canvas
-        ctx.drawImage(tempCanvas, x, y);
-
-        // Add photo frame styling if needed
+        // Draw the photo with frame-specific styling
         if (selectedFrame === "film") {
-          ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = 4;
-          ctx.strokeRect(x - 4, y - 4, 224 + 8, photoHeight + 8);
+          // For film frame: white border around photo
+          const borderWidth = 4;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(
+            x - borderWidth,
+            y - borderWidth,
+            photoWidth + borderWidth * 2,
+            photoHeight + borderWidth * 2
+          );
+
+          // Add subtle shadow for the white border
+          ctx.shadowColor = "rgba(0, 0, 0, 0.18)";
+          ctx.shadowBlur = 8;
+          ctx.shadowOffsetY = 2;
+          ctx.fillRect(
+            x - borderWidth,
+            y - borderWidth,
+            photoWidth + borderWidth * 2,
+            photoHeight + borderWidth * 2
+          );
+          ctx.shadowColor = "transparent"; // Reset shadow
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetY = 0;
+
+          // Draw filtered image
+          ctx.drawImage(tempCanvas, x, y);
         } else if (selectedFrame === "modern") {
-          ctx.strokeStyle = "#e5e7eb";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(x - 2, y - 2, 224 + 4, photoHeight + 4);
+          // For modern frame: light gray border and rounded corners
+          const borderWidth = 2;
+          ctx.fillStyle = "#e5e7eb";
+          ctx.beginPath();
+          ctx.roundRect(
+            x - borderWidth,
+            y - borderWidth,
+            photoWidth + borderWidth * 2,
+            photoHeight + borderWidth * 2,
+            4
+          );
+          ctx.fill();
+
+          // Clip for rounded photo
+          ctx.save();
+          ctx.beginPath();
+          ctx.roundRect(x, y, photoWidth, photoHeight, 4);
+          ctx.clip();
+          ctx.drawImage(tempCanvas, x, y);
+          ctx.restore();
+        } else if (selectedFrame === "custom") {
+          // Handle custom frame corner radius
+          const cornerRadiusMap = {
+            none: 0,
+            sm: 4,
+            md: 8,
+            lg: 12,
+            xl: 16,
+          };
+          const radius =
+            cornerRadiusMap[customFrameSettings.cornerRadius || "none"];
+
+          if (radius > 0) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.roundRect(x, y, photoWidth, photoHeight, radius);
+            ctx.clip();
+            ctx.drawImage(tempCanvas, x, y);
+            ctx.restore();
+          } else {
+            ctx.drawImage(tempCanvas, x, y);
+          }
+        } else {
+          // Classic frame: no border, just the photo
+          ctx.drawImage(tempCanvas, x, y);
         }
 
         resolve();
@@ -303,7 +384,7 @@ const createFilteredPhotoStrip = async (
     });
   }
 
-  // Draw stickers
+  // Draw stickers exactly as they appear in the editor
   for (const sticker of placedStickers) {
     const stickerObj = stickersRef.current.find(
       (s) => s.id === sticker.stickerId
@@ -312,11 +393,15 @@ const createFilteredPhotoStrip = async (
       await new Promise((resolve) => {
         const stickerImg = new Image();
         stickerImg.onload = () => {
-          const stickerSize = 30;
+          const stickerSize = 30; // Match editor size exactly
+          // Position relative to the strip container, accounting for padding
+          const adjustedX = sticker.x;
+          const adjustedY = sticker.y + padding; // Account for top padding
+
           ctx.drawImage(
             stickerImg,
-            sticker.x - stickerSize / 2,
-            sticker.y - stickerSize / 2,
+            adjustedX - stickerSize / 2,
+            adjustedY - stickerSize / 2,
             stickerSize,
             stickerSize
           );
@@ -327,19 +412,24 @@ const createFilteredPhotoStrip = async (
     }
   }
 
-  // Draw message and date
+  // Draw message and date exactly like editor
   if (stripMessage || showStripDate) {
-    const textY = canvas.height - messageSpace + 20;
+    const textStartY = canvas.height - messageSpace + 20;
     const stripTextColor = getContrastingTextColor(frameStyle.background);
 
-    // Message
+    // Message with Cedarville Cursive font
     if (stripMessage) {
       ctx.fillStyle = stripTextColor;
       ctx.font = '16px "Cedarville Cursive", cursive';
       ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+
       const lines = stripMessage.split("\n");
       lines.forEach((line, i) => {
-        ctx.fillText(line, canvas.width / 2, textY + i * 20);
+        if (line.trim()) {
+          // Only draw non-empty lines
+          ctx.fillText(line.trim(), canvas.width / 2, textStartY + i * 20);
+        }
       });
     }
 
@@ -348,6 +438,7 @@ const createFilteredPhotoStrip = async (
       ctx.fillStyle = stripTextColor;
       ctx.font = "12px Arial, sans-serif";
       ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
       const dateStr = new Date().toLocaleDateString("en-US", {
         month: "2-digit",
         day: "2-digit",
