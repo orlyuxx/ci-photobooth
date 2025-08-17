@@ -1204,6 +1204,9 @@ export default function Page() {
   const [showEditorAnim, setShowEditorAnim] = useState(false); // animate editor components in
   const [isFramesPopoverOpen, setIsFramesPopoverOpen] = useState(false);
 
+  // Add this line right here:
+  const canRetake = capturedImages.length > 0;
+
   // Add mounted state to prevent FOUC
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -1451,18 +1454,33 @@ export default function Page() {
   }, [capturedImages]);
 
   // Retake logic
-  const canRetake =
-    capturedImages.length === settings.numberOfPhotos && !isCapturing;
-  const handleRetake = () => {
+  const handleRetake = (redirectToPhotobooth = false) => {
     // Trigger sleek refresh sweep animation
     setShowRefreshAnim(true);
-    // Clear content immediately so it feels like a refresh
-    setCapturedImages([]);
-    setAnimatedPreviews([]);
-    setPlacedStickers([]);
+
+    if (redirectToPhotobooth) {
+      // If we're redirecting to photobooth, switch step after animation starts
+      setTimeout(() => {
+        setStep("photobooth");
+      }, 480);
+
+      // DELAY clearing content until after we've switched steps
+      setTimeout(() => {
+        setCapturedImages([]);
+        setAnimatedPreviews([]);
+        setPlacedStickers([]);
+      }, 600); // Clear after step change
+    } else {
+      // Clear content immediately for non-redirect retakes
+      setCapturedImages([]);
+      setAnimatedPreviews([]);
+      setPlacedStickers([]);
+    }
+
     // Hide animation after it sweeps
     setTimeout(() => setShowRefreshAnim(false), 1200);
   };
+
   const handlePrint = () => {
     if (canRetake) {
       // Play a distinct, elegant radial glow transition
@@ -2211,7 +2229,7 @@ export default function Page() {
             onCapture={handleCapture}
             isCapturing={isCapturing}
             canRetake={canRetake}
-            onRetake={handleRetake}
+            onRetake={() => handleRetake(false)}
             onEdit={handlePrint}
             isEditorStep={false}
           />
@@ -2752,7 +2770,7 @@ export default function Page() {
             onCapture={handleCapture}
             isCapturing={isCapturing}
             canRetake={canRetake}
-            onRetake={handleRetake}
+            onRetake={() => handleRetake(true)} // Redirect to photobooth from editor
             isEditorStep={true}
           />
         </div>
