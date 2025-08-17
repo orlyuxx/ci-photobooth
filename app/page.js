@@ -2212,7 +2212,7 @@ export default function Page() {
             isCapturing={isCapturing}
             canRetake={canRetake}
             onRetake={handleRetake}
-            onPrint={handlePrint}
+            onEdit={handlePrint}
             isEditorStep={false}
           />
         </>
@@ -2705,11 +2705,54 @@ export default function Page() {
                 console.error("All download methods failed", err);
               }
             }}
+            onPrint={async () => {
+              try {
+                if (capturedImages.length === 0) return;
+
+                // Use the same canvas approach as download
+                const dataUrl = await createFilteredPhotoStrip(
+                  capturedImages,
+                  selectedFilter,
+                  selectedFrame,
+                  customFrameSettings,
+                  stripMessage,
+                  showStripDate,
+                  placedStickers,
+                  stickersRef
+                );
+
+                if (dataUrl) {
+                  // Create a hidden image element for printing
+                  const printWindow = window.open("", "_blank");
+                  printWindow.document.write(`
+                    <html>
+                      <head>
+                        <title>Print Photo Strip</title>
+                        <style>
+                          body { margin: 0; padding: 20px; text-align: center; }
+                          img { max-width: 100%; height: auto; }
+                          @media print {
+                            body { margin: 0; padding: 0; }
+                            img { max-width: none; width: auto; height: auto; }
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        <img src="${dataUrl}" onload="window.print(); window.close();" />
+                      </body>
+                    </html>
+                  `);
+                  printWindow.document.close();
+                  return;
+                }
+              } catch (err) {
+                console.error("Print failed", err);
+              }
+            }}
             onCapture={handleCapture}
             isCapturing={isCapturing}
             canRetake={canRetake}
             onRetake={handleRetake}
-            onPrint={handlePrint}
             isEditorStep={true}
           />
         </div>

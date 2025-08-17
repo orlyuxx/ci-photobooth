@@ -11,6 +11,7 @@ const Navbar = ({
   canRetake,
   onRetake,
   onPrint,
+  onEdit,
   isEditorStep,
 }) => {
   return (
@@ -91,7 +92,15 @@ const Navbar = ({
           type="button"
           disabled={!canRetake}
           onClick={
-            canRetake && typeof onPrint === "function" ? onPrint : undefined
+            canRetake
+              ? isEditorStep
+                ? typeof onPrint === "function"
+                  ? onPrint
+                  : undefined
+                : typeof onEdit === "function"
+                ? onEdit
+                : undefined
+              : undefined
           }
         >
           <span className="bg-gray-200 rounded-full flex items-center justify-center p-1.5">
