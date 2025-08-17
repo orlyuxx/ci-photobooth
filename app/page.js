@@ -2614,6 +2614,7 @@ export default function Page() {
           {/* Show Navbar in editor step */}
           <Navbar
             showPhotobooth={true}
+            showEditorAnim={showEditorAnim}
             onSettingsOpen={handleSettingsOpen}
             onDownload={async () => {
               try {

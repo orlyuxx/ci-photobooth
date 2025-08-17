@@ -5,6 +5,7 @@ import React from "react";
 const Navbar = ({
   showPhotobooth,
   onSettingsOpen,
+  showEditorAnim,
   onDownload,
   onCapture,
   isCapturing,
@@ -17,7 +18,9 @@ const Navbar = ({
   return (
     <div
       className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center transition-all duration-700 ${
-        showPhotobooth ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        showPhotobooth || showEditorAnim
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 translate-y-8"
       }`}
       style={{ transitionDelay: "400ms" }}
     >
