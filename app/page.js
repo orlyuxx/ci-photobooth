@@ -1222,21 +1222,137 @@ export default function Page() {
   // SVG staggered entrance state
   const [visibleSVGs, setVisibleSVGs] = useState(0); // how many SVGs are visible
 
+  // Update the DraggableSVG positions for responsive design
   useEffect(() => {
     // Only run on client
     if (typeof window !== "undefined") {
-      setSvgPositions([
-        { x: 40, y: 40 },
-        { x: window.innerWidth - 120, y: window.innerHeight - 160 },
-        { x: window.innerWidth * 0.25, y: window.innerHeight * 0.5 },
-        { x: window.innerWidth - 160, y: 96 },
-        { x: 96, y: window.innerHeight - 200 },
-        { x: window.innerWidth * 0.75, y: window.innerHeight * 0.33 },
-        { x: window.innerWidth * 0.5 - 28, y: window.innerHeight - 80 }, // perfectly center the yellow star
-      ]);
+      const updatePositions = () => {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        // Calculate content bounds more precisely
+        const centerX = screenWidth / 2;
+        const centerY = screenHeight / 2;
+
+        // Content dimensions (approximate)
+        const contentWidth = screenWidth < 640 ? 280 : 400; // Smaller on mobile
+        const contentHeight = screenWidth < 640 ? 200 : 250;
+
+        // Safe margins from screen edges
+        const edgeMargin = screenWidth < 640 ? 10 : 20;
+        const svgSize = screenWidth < 640 ? 20 : 30; // Smaller SVGs on mobile
+
+        // Define content exclusion zone
+        const contentLeft = centerX - contentWidth / 2;
+        const contentRight = centerX + contentWidth / 2;
+        const contentTop = centerY - contentHeight / 2;
+        const contentBottom = centerY + contentHeight / 2;
+
+        // Helper function to generate safe positions
+        const getSafePosition = (preferredX, preferredY) => {
+          let x = preferredX;
+          let y = preferredY;
+
+          // Keep within screen bounds
+          x = Math.max(
+            edgeMargin,
+            Math.min(x, screenWidth - svgSize - edgeMargin)
+          );
+          y = Math.max(
+            edgeMargin,
+            Math.min(y, screenHeight - svgSize - edgeMargin)
+          );
+
+          // Avoid content area with extra padding
+          const padding = screenWidth < 640 ? 15 : 25;
+          if (
+            x + svgSize > contentLeft - padding &&
+            x < contentRight + padding &&
+            y + svgSize > contentTop - padding &&
+            y < contentBottom + padding
+          ) {
+            // Push to nearest safe edge
+            const distToLeft = Math.abs(x - (contentLeft - padding - svgSize));
+            const distToRight = Math.abs(x - (contentRight + padding));
+            const distToTop = Math.abs(y - (contentTop - padding - svgSize));
+            const distToBottom = Math.abs(y - (contentBottom + padding));
+
+            const minDist = Math.min(
+              distToLeft,
+              distToRight,
+              distToTop,
+              distToBottom
+            );
+
+            if (minDist === distToLeft) x = contentLeft - padding - svgSize;
+            else if (minDist === distToRight) x = contentRight + padding;
+            else if (minDist === distToTop) y = contentTop - padding - svgSize;
+            else y = contentBottom + padding;
+          }
+
+          // Final bounds check
+          x = Math.max(
+            edgeMargin,
+            Math.min(x, screenWidth - svgSize - edgeMargin)
+          );
+          y = Math.max(
+            edgeMargin,
+            Math.min(y, screenHeight - svgSize - edgeMargin)
+          );
+
+          return { x, y };
+        };
+
+        if (screenWidth < 640) {
+          // Mobile: fewer SVGs, strategic positioning
+          setSvgPositions([
+            getSafePosition(edgeMargin, screenHeight * 0.15),
+            getSafePosition(
+              screenWidth - svgSize - edgeMargin,
+              screenHeight * 0.2
+            ),
+            getSafePosition(edgeMargin, screenHeight * 0.75),
+            getSafePosition(
+              screenWidth - svgSize - edgeMargin,
+              screenHeight * 0.8
+            ),
+            getSafePosition(screenWidth * 0.15, screenHeight * 0.9),
+            getSafePosition(screenWidth * 0.85, screenHeight * 0.1),
+            getSafePosition(screenWidth * 0.9, screenHeight * 0.9),
+          ]);
+        } else if (screenWidth < 1024) {
+          // Tablet: moderate positioning
+          setSvgPositions([
+            getSafePosition(40, 60),
+            getSafePosition(screenWidth - 80, screenHeight - 120),
+            getSafePosition(screenWidth * 0.15, screenHeight * 0.4),
+            getSafePosition(screenWidth - 100, 80),
+            getSafePosition(60, screenHeight - 140),
+            getSafePosition(screenWidth * 0.85, screenHeight * 0.25),
+            getSafePosition(screenWidth * 0.5 - 15, screenHeight - 60),
+          ]);
+        } else {
+          // Desktop: original positioning
+          setSvgPositions([
+            getSafePosition(40, 40),
+            getSafePosition(screenWidth - 120, screenHeight - 160),
+            getSafePosition(screenWidth * 0.25, screenHeight * 0.5),
+            getSafePosition(screenWidth - 160, 96),
+            getSafePosition(96, screenHeight - 200),
+            getSafePosition(screenWidth * 0.75, screenHeight * 0.33),
+            getSafePosition(screenWidth * 0.5 - 28, screenHeight - 80),
+          ]);
+        }
+      };
+
+      updatePositions();
+      window.addEventListener("resize", updatePositions);
+
+      // Trigger entrance animation after mount
+      setTimeout(() => setShowCard(true), 80);
+
+      return () => window.removeEventListener("resize", updatePositions);
     }
-    // Trigger entrance animation after mount
-    setTimeout(() => setShowCard(true), 80);
   }, []);
 
   // Stagger SVGs after card animates in
@@ -2022,15 +2138,15 @@ export default function Page() {
       )}
       {/* Welcome Card: always render unless in photobooth */}
       {mounted && step !== "photobooth" && step !== "editor" && (
-        <div className="flex flex-col items-center justify-center gap-4 mt-16 mb-8 w-full max-w-md mx-auto">
-          <div className="flex flex-row items-center gap-4 group">
+        <div className="flex flex-col items-center justify-center gap-4 mt-8 sm:mt-12 lg:mt-16 mb-8 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto px-4">
+          <div className="flex flex-row items-center gap-2 sm:gap-3 md:gap-4 group">
             <img
               src="/images/photobooth-logo.png"
               alt="Photobooth Logo"
-              width={65}
-              height={65}
+              width={45}
+              height={45}
               className={
-                `rounded-xl shadow-md object-contain bg-white transition-all duration-400 ease-out transform ` +
+                `sm:w-[55px] sm:h-[55px] md:w-[65px] md:h-[65px] rounded-xl shadow-md object-contain bg-white transition-all duration-400 ease-out transform ` +
                 ` group-hover:scale-105 ` +
                 (showCard
                   ? "opacity-100 translate-y-0"
@@ -2039,7 +2155,7 @@ export default function Page() {
             />
             <h1
               className={
-                `text-8xl font-bold text-black lilita-one text-center drop-shadow-lg whitespace-nowrap transition-all duration-400 ease-out transform ` +
+                `text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-black lilita-one text-center drop-shadow-lg whitespace-nowrap transition-all duration-400 ease-out transform ` +
                 ` group-hover:scale-105 ` +
                 (showCard
                   ? "opacity-100 translate-y-0"
@@ -2051,7 +2167,7 @@ export default function Page() {
           </div>
           <h2
             className={
-              `text-lg font-medium text-purple-500 text-center transition-all duration-400 ease-out transform ` +
+              `text-sm sm:text-base md:text-lg font-medium text-purple-500 text-center transition-all duration-400 ease-out transform px-2 ` +
               (showCard
                 ? "opacity-100 translate-y-0 opacity-80"
                 : "opacity-0 translate-y-8")
@@ -2062,7 +2178,7 @@ export default function Page() {
           {step === "welcome" && (
             <button
               className={
-                `mt-12 px-6 py-2 rounded-full bg-gradient-to-r from-pink-400 via-blue-400 to-purple-400 text-white text-md font-bold shadow-lg hover:scale-105 transition-transform focus:outline-none cursor-pointer transition-all duration-400 ease-out transform ` +
+                `mt-8 sm:mt-10 md:mt-12 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-pink-400 via-blue-400 to-purple-400 text-white text-sm sm:text-base md:text-md font-bold shadow-lg hover:scale-105 transition-transform focus:outline-none cursor-pointer transition-all duration-400 ease-out transform ` +
                 (showCard
                   ? "opacity-100 scale-100 translate-y-0"
                   : "opacity-0 scale-90 translate-y-8")
@@ -2074,6 +2190,7 @@ export default function Page() {
           )}
         </div>
       )}
+
       {/* Photobooth Layout */}
       {step === "photobooth" && (
         <>
@@ -2803,6 +2920,96 @@ export default function Page() {
       )}
       {/* Fade-in animation for overlay and loader dot animation */}
       <style jsx global>{`
+        /* Responsive SVG scaling */
+        @media (max-width: 640px) {
+          .draggable-svg {
+            font-size: 0.6em; /* Smaller on mobile */
+            transform-origin: center;
+          }
+
+          /* Reduce animation intensity on mobile */
+          .svg-entrance {
+            transform: scale(0.8) translateY(16px);
+          }
+
+          .svg-entrance-in {
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .draggable-svg {
+            font-size: 0.5em; /* Even smaller on very small screens */
+          }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+          .draggable-svg {
+            font-size: 0.8em; /* Medium size on tablets */
+          }
+        }
+
+        /* Ensure SVGs don't interfere with touch interactions on mobile */
+        @media (max-width: 768px) {
+          .draggable-svg {
+            pointer-events: auto;
+            touch-action: manipulation;
+          }
+
+          /* Reduce trail effect intensity on mobile for better performance */
+          .draggable-svg-trail {
+            opacity: 0.3;
+            filter: blur(1px);
+          }
+        }
+
+        /* Responsive font adjustments for mobile */
+        @media (max-width: 640px) {
+          .lilita-one {
+            letter-spacing: -0.02em;
+          }
+        }
+
+        /* Ensure proper spacing on very small screens */
+        @media (max-width: 480px) {
+          .lilita-one {
+            letter-spacing: -0.03em;
+          }
+        }
+
+        /* Improve touch targets on mobile */
+        @media (max-width: 768px) {
+          button {
+            min-height: 44px; /* Apple's recommended touch target size */
+          }
+        }
+
+        /* Responsive SVG sizes */
+        @media (max-width: 640px) {
+          .draggable-svg {
+            font-size: 0.8em;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .draggable-svg {
+            font-size: 0.7em;
+          }
+        }
+
+        /* Existing animations and styles remain the same */
+        .animate-fadein {
+          animation: fadein 0.5s;
+        }
+        @keyframes fadein {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
         .animate-fadein {
           animation: fadein 0.5s;
         }
