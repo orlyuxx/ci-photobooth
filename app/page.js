@@ -2155,7 +2155,7 @@ export default function Page() {
             />
             <h1
               className={
-                `text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-black lilita-one text-center drop-shadow-lg whitespace-nowrap transition-all duration-400 ease-out transform ` +
+                `kingfink text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-black text-center drop-shadow-lg whitespace-nowrap transition-all duration-400 ease-out transform ` +
                 ` group-hover:scale-105 ` +
                 (showCard
                   ? "opacity-100 translate-y-0"
@@ -2210,7 +2210,7 @@ export default function Page() {
                 height={50}
                 className="rounded-xl shadow-md object-contain bg-white"
               />
-              <h1 className="text-5xl font-extrabold text-black lilita-one text-center drop-shadow-lg">
+              <h1 className="kingfink text-5xl font-extrabold text-black text-center drop-shadow-lg">
                 Snappy
               </h1>
             </div>
@@ -2370,7 +2370,7 @@ export default function Page() {
               height={50}
               className="rounded-xl shadow-md object-contain bg-white"
             />
-            <h1 className="text-5xl font-extrabold text-black lilita-one text-center drop-shadow-lg">
+            <h1 className="kingfink text-5xl font-extrabold text-black text-center drop-shadow-lg">
               Snappy
             </h1>
           </div>

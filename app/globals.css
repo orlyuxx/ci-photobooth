@@ -30,3 +30,7 @@ body {
 .lilita-one {
   font-family: var(--font-lilita-one), cursive;
 }
+
+.kingfink {
+  font-family: var(--font-kingfink), sans-serif;
+}

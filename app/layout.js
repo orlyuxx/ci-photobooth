@@ -1,5 +1,13 @@
 import { Lilita_One, Poppins, Cedarville_Cursive } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+
+const kingfink = localFont({
+  src: "../public/fonts/kingfink.otf",
+  variable: "--font-kingfink",
+  weight: "400",
+  style: "normal",
+});
 
 const lilitaOne = Lilita_One({
   variable: "--font-lilita-one",
@@ -33,7 +41,7 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/images/favicon.png" type="image/png" />
       </head>
       <body
-        className={`${lilitaOne.variable} ${poppins.variable} ${cedarville.variable} antialiased`}
+        className={`${lilitaOne.variable} ${poppins.variable} ${cedarville.variable} ${kingfink.variable}  antialiased`}
       >
         {children}
       </body>
