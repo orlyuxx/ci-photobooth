@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 const kingfink = localFont({
-  src: "../public/fonts/kingfink.otf",
+  src: "./fonts/kingfink.otf",
   variable: "--font-kingfink",
   weight: "400",
   style: "normal",
