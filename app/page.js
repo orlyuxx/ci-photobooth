@@ -2054,18 +2054,19 @@ export default function Page() {
           : "flex flex-col items-center justify-start"
       } py-0 px-0 relative`}
     >
-      {/* Decorative sparkles only on welcome and loading */}
+      {/* Decorative camera-themed elements only on welcome */}
       {step === "welcome" && svgPositions && (
         <>
           {visibleSVGs > 0 && (
             <DraggableSVG
               initial={svgPositions[0]}
-              className={`animate-pulse text-yellow-400 text-3xl svg-entrance${
+              className={`animate-pulse text-gray-600 text-3xl svg-entrance${
                 showOnMount ? " svg-entrance-in" : ""
               }`}
               style={{ transitionDelay: `0ms` }}
+              onClickEffect={() => <SparkleBurst duration={1200} />}
             >
-              <span>✨</span>
+              <span>📷</span>
             </DraggableSVG>
           )}
           {visibleSVGs > 1 && (
@@ -2075,8 +2076,9 @@ export default function Page() {
                 showOnMount ? " svg-entrance-in" : ""
               }`}
               style={{ transitionDelay: `200ms` }}
+              onClickEffect={() => <HeartPop duration={1500} />}
             >
-              <span>★</span>
+              <span>🖼️</span>
             </DraggableSVG>
           )}
           {visibleSVGs > 2 && (
@@ -2086,8 +2088,9 @@ export default function Page() {
                 showOnMount ? " svg-entrance-in" : ""
               }`}
               style={{ transitionDelay: `400ms` }}
+              onClickEffect={() => <StarTwinkle duration={1200} />}
             >
-              <span>✦</span>
+              <span>📸</span>
             </DraggableSVG>
           )}
           {visibleSVGs > 3 && (
@@ -2097,41 +2100,49 @@ export default function Page() {
                 showOnMount ? " svg-entrance-in" : ""
               }`}
               style={{ transitionDelay: `600ms` }}
+              onClickEffect={() => <ColorSparkBurst duration={1300} />}
             >
-              <span>💖</span>
+              <span>💝</span>
             </DraggableSVG>
           )}
           {visibleSVGs > 4 && (
             <DraggableSVG
               initial={svgPositions[4]}
-              className={`animate-pulse text-blue-300 text-3xl svg-entrance${
+              className={`animate-pulse text-indigo-500 text-3xl svg-entrance${
                 showOnMount ? " svg-entrance-in" : ""
               }`}
               style={{ transitionDelay: `800ms` }}
+              onClickEffect={() => <PulseEffect duration={1200} />}
             >
-              <span>🌟</span>
+              <span>🎞️</span>
             </DraggableSVG>
           )}
           {visibleSVGs > 5 && (
             <DraggableSVG
               initial={svgPositions[5]}
-              className={`animate-pulse text-pink-300 text-2xl svg-entrance${
+              className={`animate-pulse text-amber-500 text-2xl svg-entrance${
                 showOnMount ? " svg-entrance-in" : ""
               }`}
               style={{ transitionDelay: `1000ms` }}
+              onClickEffect={() => <ConfettiBurst duration={1500} />}
             >
-              <span>✨</span>
+              <img
+                src="/images/photo-strip.png"
+                alt="Photo strip"
+                className="w-9 h-9"
+              />
             </DraggableSVG>
           )}
           {visibleSVGs > 6 && (
             <DraggableSVG
               initial={svgPositions[6]}
-              className={`animate-star-shine text-yellow-300 text-3xl svg-entrance${
+              className={`animate-star-shine text-rose-400 text-3xl svg-entrance${
                 showOnMount ? " svg-entrance-in" : ""
               }`}
               style={{ transitionDelay: `1200ms` }}
+              onClickEffect={() => <StarShineTwinkle duration={1200} />}
             >
-              <span>⭐</span>
+              <span>🎀</span>
             </DraggableSVG>
           )}
         </>
@@ -2162,7 +2173,7 @@ export default function Page() {
                   : "opacity-0 translate-y-8")
               }
             >
-              Snappys
+              Snappy
             </h1>
           </div>
           <h2
