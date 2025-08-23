@@ -2048,7 +2048,7 @@ export default function Page() {
 
   return (
     <div
-      className={`min-h-screen w-full bg-gradient-to-br from-pink-100 via-blue-100 to-purple-100 ${
+      className={`min-h-screen w-full bg-gradient-to-br from-pink-200 via-blue-200 to-purple-200 ${
         step === "welcome"
           ? "flex items-center justify-center overflow-hidden"
           : "flex flex-col items-center justify-start"
@@ -2143,10 +2143,10 @@ export default function Page() {
             <img
               src="/images/photobooth-logo.png"
               alt="Photobooth Logo"
-              width={45}
-              height={45}
+              width={35}
+              height={35}
               className={
-                `sm:w-[55px] sm:h-[55px] md:w-[65px] md:h-[65px] rounded-xl shadow-md object-contain bg-white transition-all duration-400 ease-out transform ` +
+                `sm:w-[40px] sm:h-[40px] md:w-[45px] md:h-[45px] rounded-lg shadow-md object-contain bg-white transition-all duration-400 ease-out transform ` +
                 ` group-hover:scale-105 ` +
                 (showCard
                   ? "opacity-100 translate-y-0"
@@ -2155,19 +2155,19 @@ export default function Page() {
             />
             <h1
               className={
-                `kingfink text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-black text-center drop-shadow-lg whitespace-nowrap transition-all duration-400 ease-out transform ` +
+                `ciguatera font-bold text-5xl sm:text-6xl md:text-7xl lg:text-7xl text-black text-center drop-shadow-lg whitespace-nowrap transition-all duration-400 ease-out transform ` +
                 ` group-hover:scale-105 ` +
                 (showCard
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8")
               }
             >
-              Snappy
+              Snappys
             </h1>
           </div>
           <h2
             className={
-              `text-sm sm:text-base md:text-lg font-medium text-purple-500 text-center transition-all duration-400 ease-out transform px-2 ` +
+              `fredoka text-sm sm:text-base md:text-lg text-purple-500 text-center transition-all duration-400 ease-out transform px-2` +
               (showCard
                 ? "opacity-100 translate-y-0 opacity-80"
                 : "opacity-0 translate-y-8")
@@ -2177,15 +2177,17 @@ export default function Page() {
           </h2>
           {step === "welcome" && (
             <button
-              className={
-                `mt-8 sm:mt-10 md:mt-12 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-pink-400 via-blue-400 to-purple-400 text-white text-sm sm:text-base md:text-md font-bold shadow-lg hover:scale-105 transition-transform focus:outline-none cursor-pointer transition-all duration-400 ease-out transform ` +
-                (showCard
+              className={`start-btn ${
+                showCard
                   ? "opacity-100 scale-100 translate-y-0"
-                  : "opacity-0 scale-90 translate-y-8")
-              }
+                  : "opacity-0 scale-90 translate-y-8"
+              }`}
               onClick={handleStart}
             >
-              Take some photos
+              <div className="start-sign">
+                <img src="/images/camera.png" alt="Camera" />
+              </div>
+              <div className="fredoka start-text">Start</div>
             </button>
           )}
         </div>
@@ -2210,12 +2212,12 @@ export default function Page() {
                 height={50}
                 className="rounded-xl shadow-md object-contain bg-white"
               />
-              <h1 className="kingfink text-5xl font-extrabold text-black text-center drop-shadow-lg">
+              <h1 className="ciguatera font-bold text-5xl text-black text-center drop-shadow-lg">
                 Snappy
               </h1>
             </div>
             <h2
-              className="text-md font-medium text-center text-purple-500 mt-2"
+              className="fredoka text-md text-center text-purple-500 mt-2"
               style={{ letterSpacing: 0.2 }}
             >
               Capture it, remember it
@@ -2358,21 +2360,29 @@ export default function Page() {
           {/* Logo and Title */}
           <div
             className={
-              "flex flex-row items-center gap-4 mb-4" +
+              "flex flex-col items-center gap-2 mb-4" +
               (showEditorAnim ? " editor-entrance" : "")
             }
             style={{ animationDelay: showEditorAnim ? "60ms" : undefined }}
           >
-            <img
-              src="/images/photobooth-logo.png"
-              alt="Photobooth Logo"
-              width={50}
-              height={50}
-              className="rounded-xl shadow-md object-contain bg-white"
-            />
-            <h1 className="kingfink text-5xl font-extrabold text-black text-center drop-shadow-lg">
-              Snappy
-            </h1>
+            <div className="flex flex-row items-center gap-4">
+              <img
+                src="/images/photobooth-logo.png"
+                alt="Photobooth Logo"
+                width={50}
+                height={50}
+                className="rounded-xl shadow-md object-contain bg-white"
+              />
+              <h1 className="kingfink text-5xl font-extrabold text-black text-center drop-shadow-lg">
+                Snappy
+              </h1>
+            </div>
+            <h2
+              className="text-md font-medium text-center text-purple-500"
+              style={{ letterSpacing: 0.2 }}
+            >
+              Capture it, remember it
+            </h2>
           </div>
           {/* Main Editor Layout */}
           <div className="flex flex-row w-full items-start justify-end px-12 mt-8">

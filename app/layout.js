@@ -1,4 +1,9 @@
-import { Lilita_One, Poppins, Cedarville_Cursive } from "next/font/google";
+import {
+  Lilita_One,
+  Poppins,
+  Cedarville_Cursive,
+  Fredoka,
+} from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -7,6 +12,19 @@ const kingfink = localFont({
   variable: "--font-kingfink",
   weight: "400",
   style: "normal",
+});
+
+const ciguatera = localFont({
+  src: "./fonts/Ciguatera.otf",
+  variable: "--font-ciguatera",
+  weight: "400",
+  style: "normal",
+});
+
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"], // Multiple weights available!
 });
 
 const lilitaOne = Lilita_One({
@@ -41,7 +59,7 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/images/favicon.png" type="image/png" />
       </head>
       <body
-        className={`${lilitaOne.variable} ${poppins.variable} ${cedarville.variable} ${kingfink.variable}  antialiased`}
+        className={`${lilitaOne.variable} ${poppins.variable} ${cedarville.variable} ${kingfink.variable} ${fredoka.variable} ${ciguatera.variable} antialiased`}
       >
         {children}
       </body>
