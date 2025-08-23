@@ -2126,11 +2126,7 @@ export default function Page() {
               style={{ transitionDelay: `1000ms` }}
               onClickEffect={() => <ConfettiBurst duration={1500} />}
             >
-              <img
-                src="/images/photo-strip.png"
-                alt="Photo strip"
-                className="w-9 h-9"
-              />
+              <span>🎬</span>
             </DraggableSVG>
           )}
           {visibleSVGs > 6 && (
