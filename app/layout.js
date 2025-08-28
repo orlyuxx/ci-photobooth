@@ -55,6 +55,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/images/croumatic.ico" type="image/x-icon" />
         <link rel="icon" href="/images/croumatic.png" type="image/png" />
       </head>
       <body
