@@ -2148,12 +2148,12 @@ export default function Page() {
         <div className="flex flex-col items-center justify-center gap-4 mt-8 sm:mt-12 lg:mt-16 mb-8 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto px-4">
           <div className="flex flex-row items-center gap-2 sm:gap-3 md:gap-4 group">
             <img
-              src="/images/photobooth-logo.png"
+              src="/images/croumatic.png"
               alt="Photobooth Logo"
               width={35}
               height={35}
               className={
-                `sm:w-[40px] sm:h-[40px] md:w-[45px] md:h-[45px] rounded-lg shadow-md object-contain bg-white transition-all duration-400 ease-out transform ` +
+                `sm:w-[40px] sm:h-[40px] md:w-[45px] md:h-[45px] rounded-lg shadow-md object-contain transition-all duration-400 ease-out transform ` +
                 ` group-hover:scale-105 ` +
                 (showCard
                   ? "opacity-100 translate-y-0"
@@ -2169,7 +2169,7 @@ export default function Page() {
                   : "opacity-0 translate-y-8")
               }
             >
-              Snappy
+              Croumatic
             </h1>
           </div>
           <h2

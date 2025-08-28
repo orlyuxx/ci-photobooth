@@ -47,16 +47,15 @@ const cedarville = Cedarville_Cursive({
 });
 
 export const metadata = {
-  title: "Snappy",
-  description: "Pose and capture your cute moments!",
+  title: "Croumatic",
+  description: "Capture it, remember it",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
-        <link rel="icon" href="/images/favicon.png" type="image/png" />
+        <link rel="icon" href="/images/croumatic.png" type="image/png" />
       </head>
       <body
         className={`${lilitaOne.variable} ${poppins.variable} ${cedarville.variable} ${kingfink.variable} ${fredoka.variable} ${ciguatera.variable} antialiased`}
