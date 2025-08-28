@@ -1369,7 +1369,7 @@ export default function Page() {
 
   return (
     <div
-      className={`min-h-screen w-full bg-gradient-to-br from-pink-200 via-blue-200 to-purple-200 ${
+      className={`min-h-screen w-full bg-gradient-to-br from-pink-300 via-blue-300 to-purple-300 ${
         step === "welcome"
           ? "flex items-center justify-center overflow-hidden"
           : "flex flex-col items-center justify-start"
@@ -1385,7 +1385,7 @@ export default function Page() {
               width={35}
               height={35}
               className={
-                `sm:w-[40px] sm:h-[40px] md:w-[45px] md:h-[45px] rounded-lg shadow-md object-contain transition-all duration-400 ease-out transform ` +
+                `sm:w-[40px] sm:h-[40px] md:w-[45px] md:h-[45px] rounded-xl  object-contain transition-all duration-400 ease-out transform ` +
                 ` group-hover:scale-105 ` +
                 (showCard
                   ? "opacity-100 translate-y-0"
@@ -1406,7 +1406,7 @@ export default function Page() {
           </div>
           <h2
             className={
-              `fredoka text-sm sm:text-base md:text-lg text-purple-500 text-center transition-all duration-400 ease-out transform px-2` +
+              `fredoka text-sm sm:text-base md:text-lg text-purple-700 text-center transition-all duration-400 ease-out transform px-2` +
               (showCard
                 ? "opacity-100 translate-y-0 opacity-80"
                 : "opacity-0 translate-y-8")
@@ -1426,7 +1426,7 @@ export default function Page() {
               <div className="start-sign">
                 <img src="/images/camera.png" alt="Camera" />
               </div>
-              <div className="fredoka start-text">Start</div>
+              <div className="fredoka start-text text-black">Start</div>
             </button>
           )}
         </div>
@@ -1445,18 +1445,18 @@ export default function Page() {
           >
             <div className="flex flex-row items-center gap-4 group">
               <img
-                src="/images/photobooth-logo.png"
+                src="/images/croumatic.png"
                 alt="Photobooth Logo"
                 width={50}
                 height={50}
-                className="rounded-xl shadow-md object-contain bg-white"
+                className="rounded-xl object-contain"
               />
               <h1 className="ciguatera font-bold text-5xl text-black text-center drop-shadow-lg">
-                Snappy
+                Croumatic
               </h1>
             </div>
             <h2
-              className="fredoka text-md text-center text-purple-500 mt-2"
+              className="fredoka text-md text-center text-purple-700 mt-2"
               style={{ letterSpacing: 0.2 }}
             >
               Capture it, remember it
@@ -1511,7 +1511,6 @@ export default function Page() {
                         )}
                         {showCaptureEffect && (
                           <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
-                            <ConfettiBurst duration={700} />
                             <div className="absolute inset-0 bg-white opacity-40 animate-capture-flash" />
                           </div>
                         )}
@@ -1606,18 +1605,18 @@ export default function Page() {
           >
             <div className="flex flex-row items-center gap-4">
               <img
-                src="/images/photobooth-logo.png"
+                src="/images/croumatic.png"
                 alt="Photobooth Logo"
                 width={50}
                 height={50}
-                className="rounded-xl shadow-md object-contain bg-white"
+                className="rounded-xl shadow-md object-contain"
               />
-              <h1 className="kingfink text-5xl font-extrabold text-black text-center drop-shadow-lg">
-                Snappy
+              <h1 className="ciguatera font-bold text-5xl text-black text-center drop-shadow-lg">
+                Croumatic
               </h1>
             </div>
             <h2
-              className="text-md font-medium text-center text-purple-500"
+              className="text-md font-medium text-center text-purple-700"
               style={{ letterSpacing: 0.2 }}
             >
               Capture it, remember it
