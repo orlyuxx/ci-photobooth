@@ -119,7 +119,7 @@ export default function Frames({
         isPickerOpen ? "z-50" : ""
       }`}
     >
-      <span className="text-md font-bold text-black -mt-4 mb-6 text-center">
+      <span className="text-md font-bold text-black mt-2 sm:-mt-2 lg:-mt-4 mb-6 text-center">
         Frames
       </span>
       <div className="grid grid-cols-2 gap-4 w-full max-w-lg place-items-center">
@@ -169,7 +169,7 @@ export default function Frames({
             {/* Custom Options start here */}
             <div className="w-full max-w-lg">
               {/* Border Color & Background Color side by side */}
-              <div className="mb-3 flex flex-row gap-6 items-end w-full">
+              <div className="mb-3 flex flex-col sm:flex-row gap-3 sm:gap-6 items-end w-full">
                 {/* Border Color */}
                 <div className="flex flex-col flex-1">
                   <span className="text-xs font-medium text-gray-600 mb-1 block">
@@ -178,7 +178,7 @@ export default function Frames({
                   <div className="relative" ref={borderColorRef}>
                     <button
                       ref={borderBtnRef}
-                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
+                      className="w-20 sm:w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
                       style={{
                         backgroundColor: customSettings.borderColor || "black",
                         backgroundImage: "none",
@@ -234,7 +234,7 @@ export default function Frames({
                   <div className="relative" ref={backgroundColorRef}>
                     <button
                       ref={backgroundBtnRef}
-                      className="w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
+                      className="w-20 sm:w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
                       style={{
                         backgroundColor:
                           customSettings.backgroundColor || "white",
@@ -291,7 +291,7 @@ export default function Frames({
                 <span className="text-xs font-medium text-gray-600 mb-1 block">
                   Photo Rounded Corners
                 </span>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1 sm:gap-2">
                   {[
                     { value: "none", label: "None" },
                     { value: "sm", label: "Small" },

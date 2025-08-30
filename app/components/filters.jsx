@@ -9,7 +9,7 @@ export default function Filters({
     <div
       className={`w-full h-full flex flex-col items-center justify-center ${className}`}
     >
-      <span className="text-md font-bold text-black -mt-4 mb-6 text-center">
+      <span className="text-md font-bold text-black mt-2 sm:-mt-2 lg:-mt-4 mb-6 text-center">
         Filters
       </span>
       <div className="grid grid-cols-2 gap-4 w-full max-w-lg place-items-center">

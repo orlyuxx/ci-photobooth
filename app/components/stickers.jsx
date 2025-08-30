@@ -75,7 +75,7 @@ export default function Stickers({
     <div
       className={`w-full h-full flex flex-col items-center justify-center ${className}`}
     >
-      <span className="text-md font-bold text-black -mt-4 mb-6 text-center">
+      <span className="text-md font-bold text-black mt-2 sm:-mt-2 lg:-mt-4 mb-6 text-center">
         Stickers
       </span>
       <div className="grid grid-cols-4 gap-2 w-full max-w-xs place-items-center">

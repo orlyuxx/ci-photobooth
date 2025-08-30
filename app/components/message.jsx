@@ -11,7 +11,7 @@ export default function Message({
     <div
       className={`w-full h-full flex flex-col items-center justify-start ${className}`}
     >
-      <span className="text-md font-bold text-black mb-4 -mt-4 text-center">
+      <span className="text-md font-bold text-black mb-4 mt-2 sm:-mt-2 lg:-mt-4 text-center">
         Message
       </span>
       <div className="w-full max-w-xs space-y-2 mt-4">
