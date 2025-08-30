@@ -1437,50 +1437,53 @@ export default function Page() {
         <>
           {/* Top: Title and Subtitle */}
           <div
-            className={`w-full flex flex-col items-center mt-12 mb-8 transition-all duration-700 ${
+            className={`w-full flex flex-col items-center mt-6 sm:mt-8 md:mt-10 lg:mt-12 mb-4 sm:mb-6 md:mb-8 transition-all duration-700 px-4 ${
               showPhotobooth
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}
           >
-            <div className="flex flex-row items-center gap-4 group">
+            <div className="flex flex-row items-center gap-2 sm:gap-3 md:gap-4 group">
               <img
                 src="/images/croumatic.png"
                 alt="Photobooth Logo"
-                width={50}
-                height={50}
-                className="rounded-xl object-contain"
+                width={35}
+                height={35}
+                className="sm:w-[40px] sm:h-[40px] md:w-[45px] md:h-[45px] lg:w-[50px] lg:h-[50px] rounded-xl object-contain"
               />
-              <h1 className="ciguatera font-bold text-5xl text-black text-center drop-shadow-lg">
+              <h1 className="ciguatera font-bold text-3xl sm:text-4xl md:text-5xl lg:text-5xl text-black text-center drop-shadow-lg">
                 Croumatic
               </h1>
             </div>
             <h2
-              className="fredoka text-md text-center text-purple-700 mt-2"
+              className="fredoka text-xs sm:text-sm md:text-md text-center text-purple-700 mt-1 sm:mt-2"
               style={{ letterSpacing: 0.2 }}
             >
               Capture it, remember it
             </h2>
           </div>
-          {/* Main: Two Columns */}
-          <div className="flex flex-row w-full max-w-6xl mx-auto my-8 items-start justify-between px-12">
+
+          {/* Main: Responsive Layout */}
+          <div className="flex flex-col lg:flex-row w-full max-w-6xl mx-auto my-4 sm:my-6 md:my-8 items-center lg:items-start justify-center lg:justify-between px-4 sm:px-6 md:px-8 lg:px-12 gap-6 lg:gap-0">
             {/* Left: Camera Preview */}
             <div
-              className={`-mt-8 flex-1 mr-6 pr-4 flex-col items-start justify-center transition-all duration-700${
+              className={`flex-1 lg:mr-6 lg:pr-4 flex flex-col items-center lg:items-start justify-center order-1 lg:order-1 lg:-mt-8 transition-all duration-700 ${
                 showPhotobooth
-                  ? " opacity-100 translate-y-0"
-                  : " opacity-0 translate-y-8"
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8"
               }`}
             >
               <div
-                className={`relative transition-all duration-700${
+                className={`relative transition-all duration-700 ${
                   showPhotobooth
-                    ? " opacity-100 translate-y-0"
-                    : " opacity-0 translate-y-8"
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-8"
                 }`}
                 style={{
-                  width: 500,
-                  height: 450,
+                  width: "min(90vw, 500px)",
+                  height: "min(80vw, 450px)",
+                  maxWidth: 500,
+                  maxHeight: 450,
                   transitionDelay: "200ms",
                 }}
               >
@@ -1488,7 +1491,7 @@ export default function Page() {
                   className="w-full h-full bg-white shadow-2xl flex flex-col items-center justify-start border border-gray-200"
                   style={{ boxShadow: "0 8px 32px 0 rgba(0,0,0,0.18)" }}
                 >
-                  {/* Polaroid photo area - less top margin, more bottom margin */}
+                  {/* Polaroid photo area */}
                   <div
                     className="w-[90%] h-[85%] bg-gray-200 flex items-center justify-center mt-4 mb-6 overflow-hidden"
                     style={{ position: "relative" }}
@@ -1504,7 +1507,7 @@ export default function Page() {
                         />
                         {countdown !== null && (
                           <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                            <span className="text-white text-5xl font-bold drop-shadow-lg animate-pulse">
+                            <span className="text-white text-3xl sm:text-4xl md:text-5xl font-bold drop-shadow-lg animate-pulse">
                               {countdown}
                             </span>
                           </div>
@@ -1516,42 +1519,44 @@ export default function Page() {
                         )}
                       </>
                     ) : (
-                      <span className="text-7xl text-gray-400">📷</span>
+                      <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-gray-400">
+                        📷
+                      </span>
                     )}
                   </div>
                 </div>
               </div>
             </div>
+
             {/* Right: Preview Images */}
             <div
-              className={`-mt-2 flex-1 flex flex-col items-end justify-center transition-all duration-700 ${
+              className={`flex-1 flex flex-col items-center lg:items-end justify-center order-2 lg:order-2 lg:-mt-2 transition-all duration-700 w-full lg:w-auto ${
                 showPhotobooth
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
               }`}
               style={{ transitionDelay: "250ms" }}
             >
-              {/* <div className="w-full flex justify-center">
-                <h3 className="text-lg text-center font-bold mb-6 text-black w-full">
-                  Preview
-                </h3>
-              </div> */}
               <div
                 className={`grid ${getGridLayout(settings.numberOfPhotos)} ${
-                  settings.numberOfPhotos === 6 ? "-mt-6" : "pt-6"
-                } pl-12`}
+                  settings.numberOfPhotos === 6
+                    ? "mt-0 sm:-mt-2 md:-mt-4 lg:-mt-6"
+                    : "pt-2 sm:pt-4 md:pt-6"
+                } lg:pl-12 w-full max-w-md lg:max-w-none justify-center lg:justify-start`}
               >
                 {displayImages.map((src, idx) => {
                   const key = src + "-" + idx;
+                  // Responsive sizing for preview images
+                  const baseSize =
+                    settings.numberOfPhotos === 6
+                      ? "w-32 h-24 sm:w-36 sm:h-28 md:w-40 md:h-32 lg:w-48 lg:h-36"
+                      : "w-36 h-28 sm:w-40 sm:h-32 md:w-48 md:h-36 lg:w-56 lg:h-40";
+
                   return (
                     <div
                       key={key}
                       className={
-                        `relative bg-white flex items-center justify-center shadow-xl border-4 border-white ${
-                          settings.numberOfPhotos === 6
-                            ? "w-48 h-36"
-                            : "w-56 h-40"
-                        } ` +
+                        `relative bg-white flex items-center justify-center shadow-xl border-4 border-white ${baseSize} ` +
                         getPositionClasses(idx, settings.numberOfPhotos) +
                         (animatedPreviews.includes(key)
                           ? " preview-elegant-in"
@@ -1579,17 +1584,20 @@ export default function Page() {
               </div>
             </div>
           </div>
-          {/* Mini Navbar */}
-          <Navbar
-            showPhotobooth={showPhotobooth}
-            onSettingsOpen={handleSettingsOpen}
-            onCapture={handleCapture}
-            isCapturing={isCapturing}
-            canRetake={canRetake}
-            onRetake={() => handleRetake(false)}
-            onEdit={handlePrint}
-            isEditorStep={false}
-          />
+
+          {/* Mini Navbar - Make it responsive */}
+          <div className="w-full flex justify-center mt-4 sm:mt-6 md:mt-8">
+            <Navbar
+              showPhotobooth={showPhotobooth}
+              onSettingsOpen={handleSettingsOpen}
+              onCapture={handleCapture}
+              isCapturing={isCapturing}
+              canRetake={canRetake}
+              onRetake={() => handleRetake(false)}
+              onEdit={handlePrint}
+              isEditorStep={false}
+            />
+          </div>
         </>
       )}
       {/* Editor Step: Photo Strip Editor */}
