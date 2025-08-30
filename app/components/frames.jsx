@@ -291,31 +291,84 @@ export default function Frames({
                 <span className="text-xs font-medium text-gray-600 mb-1 block">
                   Photo Rounded Corners
                 </span>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1 sm:gap-2">
-                  {[
-                    { value: "none", label: "None" },
-                    { value: "sm", label: "Small" },
-                    { value: "md", label: "Medium" },
-                    { value: "lg", label: "Large" },
-                    { value: "xl", label: "Extra" },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      className={`px-1.5 py-1 text-xs font-medium border transition-all hover:cursor-pointer ${
-                        customSettings.cornerRadius === option.value
-                          ? "bg-black text-white border-black"
-                          : "bg-white text-black border-black hover:bg-gray-100"
-                      }`}
-                      onClick={() =>
-                        onCustomSettingsChange({
-                          ...customSettings,
-                          cornerRadius: option.value,
-                        })
-                      }
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() =>
+                      onCustomSettingsChange({
+                        ...customSettings,
+                        cornerRadius: "none",
+                      })
+                    }
+                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
+                      customSettings.cornerRadius === "none"
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    None
+                  </button>
+                  <button
+                    onClick={() =>
+                      onCustomSettingsChange({
+                        ...customSettings,
+                        cornerRadius: "sm",
+                      })
+                    }
+                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
+                      customSettings.cornerRadius === "sm"
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    Small
+                  </button>
+                  <button
+                    onClick={() =>
+                      onCustomSettingsChange({
+                        ...customSettings,
+                        cornerRadius: "md",
+                      })
+                    }
+                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
+                      customSettings.cornerRadius === "md"
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    Medium
+                  </button>
+                  <button
+                    onClick={() =>
+                      onCustomSettingsChange({
+                        ...customSettings,
+                        cornerRadius: "lg",
+                      })
+                    }
+                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
+                      customSettings.cornerRadius === "lg"
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    Large
+                  </button>
+                  <button
+                    onClick={() =>
+                      onCustomSettingsChange({
+                        ...customSettings,
+                        cornerRadius: "xl",
+                      })
+                    }
+                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
+                      customSettings.cornerRadius === "xl"
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    Extra
+                  </button>
+                  {/* Empty cell for grid alignment */}
+                  <div></div>
                 </div>
               </div>
             </div>
