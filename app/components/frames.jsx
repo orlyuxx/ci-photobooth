@@ -163,217 +163,212 @@ export default function Frames({
         >
           Custom
         </button>
-        {/* Replace the two invisible divs with Custom Options if custom is selected */}
-        {selected === "custom" ? (
-          <div className="col-span-2 w-full">
-            {/* Custom Options start here */}
-            <div className="w-full max-w-lg">
-              {/* Border Color & Background Color side by side */}
-              <div className="mb-3 flex flex-col sm:flex-row gap-3 sm:gap-6 items-end w-full">
-                {/* Border Color */}
-                <div className="flex flex-col flex-1">
-                  <span className="text-xs font-medium text-gray-600 mb-1 block">
-                    Border Color
-                  </span>
-                  <div className="relative" ref={borderColorRef}>
-                    <button
-                      ref={borderBtnRef}
-                      className="w-20 sm:w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
-                      style={{
-                        backgroundColor: customSettings.borderColor || "black",
-                        backgroundImage: "none",
-                        backgroundSize: "8px 8px",
-                        backgroundPosition: "0 0, 4px 4px",
-                      }}
-                      onClick={() => {
-                        setShowBorderColorPicker((prev) => {
-                          if (!prev) setShowBackgroundColorPicker(false);
-                          return !prev;
-                        });
-                      }}
-                    />
-                    {showBorderColorPicker &&
-                      typeof window !== "undefined" &&
-                      createPortal(
-                        <div
-                          ref={borderPopoverRef}
-                          className="z-[9999] bg-white p-3 rounded shadow-lg border border-gray-300"
-                          style={{
-                            position: "fixed",
-                            top: borderPos.top,
-                            left: borderPos.left,
-                          }}
-                        >
-                          <HexColorPicker
-                            color={customSettings.borderColor || "#000000"}
-                            onChange={(color) =>
-                              onCustomSettingsChange({
-                                ...customSettings,
-                                borderColor: color,
-                              })
-                            }
-                          />
-                          <div className="flex justify-end mt-2">
-                            <button
-                              className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
-                              onClick={() => setShowBorderColorPicker(false)}
-                            >
-                              Close
-                            </button>
-                          </div>
-                        </div>,
-                        document.body
-                      )}
-                  </div>
-                </div>
-                {/* Background Color */}
-                <div className="flex flex-col flex-1">
-                  <span className="text-xs font-medium text-gray-600 mb-1 block">
-                    Background Color
-                  </span>
-                  <div className="relative" ref={backgroundColorRef}>
-                    <button
-                      ref={backgroundBtnRef}
-                      className="w-20 sm:w-24 h-5 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
-                      style={{
-                        backgroundColor:
-                          customSettings.backgroundColor || "white",
-                        backgroundImage: "none",
-                        backgroundSize: "8px 8px",
-                        backgroundPosition: "0 0, 4px 4px",
-                      }}
-                      onClick={() => {
-                        setShowBackgroundColorPicker((prev) => {
-                          if (!prev) setShowBorderColorPicker(false);
-                          return !prev;
-                        });
-                      }}
-                    />
-                    {showBackgroundColorPicker &&
-                      typeof window !== "undefined" &&
-                      createPortal(
-                        <div
-                          ref={backgroundPopoverRef}
-                          className="z-[9999] bg-white p-3 rounded shadow-lg border border-gray-300"
-                          style={{
-                            position: "fixed",
-                            top: backgroundPos.top,
-                            left: backgroundPos.left,
-                          }}
-                        >
-                          <HexColorPicker
-                            color={customSettings.backgroundColor || "#ffffff"}
-                            onChange={(color) =>
-                              onCustomSettingsChange({
-                                ...customSettings,
-                                backgroundColor: color,
-                              })
-                            }
-                          />
-                          <div className="flex justify-end mt-2">
-                            <button
-                              className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
-                              onClick={() =>
-                                setShowBackgroundColorPicker(false)
-                              }
-                            >
-                              Close
-                            </button>
-                          </div>
-                        </div>,
-                        document.body
-                      )}
-                  </div>
+
+        {/* Custom Options - properly aligned with main buttons */}
+        {selected === "custom" && (
+          <div className="col-span-2 w-full max-w-lg mt-4">
+            {/* Border Color & Background Color - aligned with button grid */}
+            <div className="grid grid-cols-2 gap-4 mb-4 place-items-center">
+              {/* Border Color */}
+              <div className="flex flex-col items-center w-32">
+                <span className="text-xs font-medium text-gray-600 mb-2 text-center">
+                  Border Color
+                </span>
+                <div className="relative" ref={borderColorRef}>
+                  <button
+                    ref={borderBtnRef}
+                    className="w-24 h-6 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
+                    style={{
+                      backgroundColor: customSettings.borderColor || "black",
+                    }}
+                    onClick={() => {
+                      setShowBorderColorPicker((prev) => {
+                        if (!prev) setShowBackgroundColorPicker(false);
+                        return !prev;
+                      });
+                    }}
+                  />
+                  {showBorderColorPicker &&
+                    typeof window !== "undefined" &&
+                    createPortal(
+                      <div
+                        ref={borderPopoverRef}
+                        className="z-[9999] bg-white p-3 rounded shadow-lg border border-gray-300"
+                        style={{
+                          position: "fixed",
+                          top: borderPos.top,
+                          left: borderPos.left,
+                        }}
+                      >
+                        <HexColorPicker
+                          color={customSettings.borderColor || "#000000"}
+                          onChange={(color) =>
+                            onCustomSettingsChange({
+                              ...customSettings,
+                              borderColor: color,
+                            })
+                          }
+                        />
+                        <div className="flex justify-end mt-2">
+                          <button
+                            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
+                            onClick={() => setShowBorderColorPicker(false)}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>,
+                      document.body
+                    )}
                 </div>
               </div>
-              {/* Photo Rounded Corners */}
-              <div className="mb-2">
-                <span className="text-xs font-medium text-gray-600 mb-1 block">
-                  Photo Rounded Corners
+
+              {/* Background Color */}
+              <div className="flex flex-col items-center w-32">
+                <span className="text-xs font-medium text-gray-600 mb-2 text-center">
+                  Background Color
                 </span>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="relative" ref={backgroundColorRef}>
                   <button
-                    onClick={() =>
-                      onCustomSettingsChange({
-                        ...customSettings,
-                        cornerRadius: "none",
-                      })
-                    }
-                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
-                      customSettings.cornerRadius === "none"
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    None
-                  </button>
-                  <button
-                    onClick={() =>
-                      onCustomSettingsChange({
-                        ...customSettings,
-                        cornerRadius: "sm",
-                      })
-                    }
-                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
-                      customSettings.cornerRadius === "sm"
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    Small
-                  </button>
-                  <button
-                    onClick={() =>
-                      onCustomSettingsChange({
-                        ...customSettings,
-                        cornerRadius: "md",
-                      })
-                    }
-                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
-                      customSettings.cornerRadius === "md"
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    Medium
-                  </button>
-                  <button
-                    onClick={() =>
-                      onCustomSettingsChange({
-                        ...customSettings,
-                        cornerRadius: "lg",
-                      })
-                    }
-                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
-                      customSettings.cornerRadius === "lg"
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    Large
-                  </button>
-                  <button
-                    onClick={() =>
-                      onCustomSettingsChange({
-                        ...customSettings,
-                        cornerRadius: "xl",
-                      })
-                    }
-                    className={`px-3 py-1 text-xs border hover:cursor-pointer ${
-                      customSettings.cornerRadius === "xl"
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    Extra
-                  </button>
-                  {/* Empty cell for grid alignment */}
-                  <div></div>
+                    ref={backgroundBtnRef}
+                    className="w-24 h-6 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
+                    style={{
+                      backgroundColor:
+                        customSettings.backgroundColor || "white",
+                    }}
+                    onClick={() => {
+                      setShowBackgroundColorPicker((prev) => {
+                        if (!prev) setShowBorderColorPicker(false);
+                        return !prev;
+                      });
+                    }}
+                  />
+                  {showBackgroundColorPicker &&
+                    typeof window !== "undefined" &&
+                    createPortal(
+                      <div
+                        ref={backgroundPopoverRef}
+                        className="z-[9999] bg-white p-3 rounded shadow-lg border border-gray-300"
+                        style={{
+                          position: "fixed",
+                          top: backgroundPos.top,
+                          left: backgroundPos.left,
+                        }}
+                      >
+                        <HexColorPicker
+                          color={customSettings.backgroundColor || "#ffffff"}
+                          onChange={(color) =>
+                            onCustomSettingsChange({
+                              ...customSettings,
+                              backgroundColor: color,
+                            })
+                          }
+                        />
+                        <div className="flex justify-end mt-2">
+                          <button
+                            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border transition-colors"
+                            onClick={() => setShowBackgroundColorPicker(false)}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>,
+                      document.body
+                    )}
                 </div>
               </div>
             </div>
+
+            {/* Photo Rounded Corners - centered and properly spaced */}
+            <div className="w-full">
+              <span className="text-xs font-medium text-gray-600 mb-3 block text-center">
+                Photo Rounded Corners
+              </span>
+              <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                <button
+                  onClick={() =>
+                    onCustomSettingsChange({
+                      ...customSettings,
+                      cornerRadius: "none",
+                    })
+                  }
+                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                    customSettings.cornerRadius === "none"
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-black border-gray-300 hover:border-gray-400"
+                  }`}
+                >
+                  None
+                </button>
+                <button
+                  onClick={() =>
+                    onCustomSettingsChange({
+                      ...customSettings,
+                      cornerRadius: "sm",
+                    })
+                  }
+                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                    customSettings.cornerRadius === "sm"
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-black border-gray-300 hover:border-gray-400"
+                  }`}
+                >
+                  Small
+                </button>
+                <button
+                  onClick={() =>
+                    onCustomSettingsChange({
+                      ...customSettings,
+                      cornerRadius: "md",
+                    })
+                  }
+                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                    customSettings.cornerRadius === "md"
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-black border-gray-300 hover:border-gray-400"
+                  }`}
+                >
+                  Medium
+                </button>
+                <button
+                  onClick={() =>
+                    onCustomSettingsChange({
+                      ...customSettings,
+                      cornerRadius: "lg",
+                    })
+                  }
+                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                    customSettings.cornerRadius === "lg"
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-black border-gray-300 hover:border-gray-400"
+                  }`}
+                >
+                  Large
+                </button>
+                <button
+                  onClick={() =>
+                    onCustomSettingsChange({
+                      ...customSettings,
+                      cornerRadius: "xl",
+                    })
+                  }
+                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                    customSettings.cornerRadius === "xl"
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-black border-gray-300 hover:border-gray-400"
+                  }`}
+                >
+                  Extra
+                </button>
+                {/* Empty cell for proper grid alignment */}
+                <div></div>
+              </div>
+            </div>
           </div>
-        ) : (
+        )}
+
+        {/* Empty divs when custom is not selected to maintain consistent spacing */}
+        {selected !== "custom" && (
           <>
             <div className="w-32 h-10"></div>
             <div className="w-32 h-10"></div>
