@@ -1465,10 +1465,10 @@ export default function Page() {
           </div>
 
           {/* Main: Responsive Layout */}
-          <div className="flex flex-col lg:flex-row w-full max-w-6xl mx-auto my-4 sm:my-6 md:my-8 items-center lg:items-start justify-center lg:justify-between px-4 sm:px-6 md:px-8 lg:px-12 gap-6 lg:gap-0">
-            {/* Left: Camera Preview */}
+          <div className="flex flex-col xl:flex-row w-full max-w-6xl mx-auto my-4 sm:my-6 md:my-8 items-center xl:items-start justify-center xl:justify-between px-4 sm:px-6 md:px-8 xl:px-12 gap-6 xl:gap-0">
+            {/* Camera Preview - Full width on tablets including iPad Pro, flex-1 on large desktop */}
             <div
-              className={`flex-1 lg:mr-6 lg:pr-4 flex flex-col items-center lg:items-start justify-center order-1 lg:order-1 lg:-mt-8 transition-all duration-700 ${
+              className={`w-full xl:flex-1 xl:mr-6 xl:pr-4 flex flex-col items-center xl:items-start justify-center order-1 xl:order-1 xl:-mt-8 transition-all duration-700 ${
                 showPhotobooth
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
@@ -1527,11 +1527,65 @@ export default function Page() {
                   </div>
                 </div>
               </div>
+
+              {/* Preview Images - Below camera on mobile/tablet including iPad Pro, hidden on large desktop */}
+              <div
+                className={`xl:hidden flex flex-col items-center justify-center mt-12 ml-4 md:mt-10 lg:mt-16 transition-all duration-700 w-full ${
+                  showPhotobooth
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-8"
+                }`}
+                style={{ transitionDelay: "350ms" }}
+              >
+                <div
+                  className={`grid ${getGridLayout(
+                    settings.numberOfPhotos
+                  )} w-full max-w-md justify-center`}
+                >
+                  {displayImages.map((src, idx) => {
+                    const key = src + "-" + idx;
+                    // Responsive sizing for preview images
+                    const baseSize =
+                      settings.numberOfPhotos === 6
+                        ? "w-32 h-24 sm:w-36 sm:h-28 md:w-40 md:h-32 lg:w-44 lg:h-34"
+                        : "w-36 h-28 sm:w-40 sm:h-32 md:w-48 md:h-36 lg:w-52 lg:h-38";
+
+                    return (
+                      <div
+                        key={key}
+                        className={
+                          `relative bg-white flex items-center justify-center shadow-xl border-4 border-white ${baseSize} ` +
+                          getPositionClasses(idx, settings.numberOfPhotos) +
+                          (animatedPreviews.includes(key)
+                            ? " preview-elegant-in"
+                            : "")
+                        }
+                        style={{
+                          overflow: "hidden",
+                          opacity: 1,
+                          transform: "translateY(0)",
+                          transition: "none",
+                          animationDelay: animatedPreviews.includes(key)
+                            ? `${idx * 0.12}s`
+                            : undefined,
+                        }}
+                      >
+                        <img
+                          src={src}
+                          alt={`Preview ${idx + 1}`}
+                          className="object-cover w-full h-full"
+                          style={{ filter: "brightness(1.05) contrast(1.05)" }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            {/* Right: Preview Images */}
+            {/* Right: Preview Images - Only shown on large desktop (xl+) */}
             <div
-              className={`flex-1 flex flex-col items-center lg:items-end justify-center order-2 lg:order-2 lg:-mt-2 transition-all duration-700 w-full lg:w-auto ${
+              className={`hidden xl:flex flex-1 flex-col items-center xl:items-end justify-center order-2 xl:order-2 xl:-mt-2 transition-all duration-700 w-full xl:w-auto ${
                 showPhotobooth
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
@@ -1541,17 +1595,17 @@ export default function Page() {
               <div
                 className={`grid ${getGridLayout(settings.numberOfPhotos)} ${
                   settings.numberOfPhotos === 6
-                    ? "mt-0 sm:-mt-2 md:-mt-4 lg:-mt-6"
+                    ? "mt-0 sm:-mt-2 md:-mt-4 xl:-mt-6"
                     : "pt-2 sm:pt-4 md:pt-6"
-                } lg:pl-12 w-full max-w-md lg:max-w-none justify-center lg:justify-start`}
+                } xl:pl-12 w-full max-w-md xl:max-w-none justify-center xl:justify-start`}
               >
                 {displayImages.map((src, idx) => {
                   const key = src + "-" + idx;
-                  // Responsive sizing for preview images
+                  // Large desktop sizing for preview images
                   const baseSize =
                     settings.numberOfPhotos === 6
-                      ? "w-32 h-24 sm:w-36 sm:h-28 md:w-40 md:h-32 lg:w-48 lg:h-36"
-                      : "w-36 h-28 sm:w-40 sm:h-32 md:w-48 md:h-36 lg:w-56 lg:h-40";
+                      ? "xl:w-48 xl:h-36"
+                      : "xl:w-56 xl:h-40";
 
                   return (
                     <div
