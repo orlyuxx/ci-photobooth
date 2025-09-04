@@ -12,9 +12,9 @@ export default function Filters({
       <span className="text-md font-bold text-black mt-2 sm:-mt-2 lg:-mt-4 mb-6 text-center">
         Filters
       </span>
-      <div className="grid grid-cols-2 gap-4 w-full max-w-lg place-items-center">
+      <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "none"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
@@ -24,7 +24,7 @@ export default function Filters({
           None
         </button>
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "grayscale"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
@@ -34,7 +34,7 @@ export default function Filters({
           Grayscale
         </button>
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "brightness"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
@@ -45,7 +45,7 @@ export default function Filters({
         </button>
         {/* Swap order: show Sepia before Blue */}
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "sepia"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
@@ -55,7 +55,7 @@ export default function Filters({
           Sepia
         </button>
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "blue"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
@@ -66,7 +66,7 @@ export default function Filters({
         </button>
         {/* Rename Vintage -> Red */}
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "red"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"

@@ -111,6 +111,7 @@ export default function Frames({
       };
     }
   }, [showBackgroundColorPicker]);
+
   const isPickerOpen = showBorderColorPicker || showBackgroundColorPicker;
 
   return (
@@ -122,9 +123,9 @@ export default function Frames({
       <span className="text-md font-bold text-black mt-2 sm:-mt-2 lg:-mt-4 mb-6 text-center">
         Frames
       </span>
-      <div className="grid grid-cols-2 gap-4 w-full max-w-lg place-items-center">
+      <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "classic"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
@@ -134,7 +135,7 @@ export default function Frames({
           Classic
         </button>
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "film"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
@@ -144,7 +145,7 @@ export default function Frames({
           Film
         </button>
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "modern"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
@@ -154,7 +155,7 @@ export default function Frames({
           Modern
         </button>
         <button
-          className={`font-semibold px-6 py-2 w-32 shadow transition-all text-xs hover:cursor-pointer border-2 ${
+          className={`font-semibold px-6 py-2 w-full shadow transition-all text-xs hover:cursor-pointer border-2 ${
             selected === "custom"
               ? "bg-black text-white border-black"
               : "bg-white text-black border-black hover:bg-gray-100"
@@ -164,20 +165,20 @@ export default function Frames({
           Custom
         </button>
 
-        {/* Custom Options - properly aligned with main buttons */}
+        {/* Custom Options */}
         {selected === "custom" && (
-          <div className="col-span-2 w-full max-w-lg mt-4">
-            {/* Border Color & Background Color - aligned with button grid */}
-            <div className="grid grid-cols-2 gap-4 mb-4 place-items-center">
+          <div className="col-span-2 w-full mt-4">
+            {/* Border Color & Background Color */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
               {/* Border Color */}
-              <div className="flex flex-col items-center w-32">
+              <div className="flex flex-col items-center w-full">
                 <span className="text-xs font-medium text-gray-600 mb-2 text-center">
                   Border Color
                 </span>
-                <div className="relative" ref={borderColorRef}>
+                <div className="relative w-full" ref={borderColorRef}>
                   <button
                     ref={borderBtnRef}
-                    className="w-24 h-6 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
+                    className="w-full h-6 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
                     style={{
                       backgroundColor: customSettings.borderColor || "black",
                     }}
@@ -224,14 +225,14 @@ export default function Frames({
               </div>
 
               {/* Background Color */}
-              <div className="flex flex-col items-center w-32">
+              <div className="flex flex-col items-center w-full">
                 <span className="text-xs font-medium text-gray-600 mb-2 text-center">
                   Background Color
                 </span>
-                <div className="relative" ref={backgroundColorRef}>
+                <div className="relative w-full" ref={backgroundColorRef}>
                   <button
                     ref={backgroundBtnRef}
-                    className="w-24 h-6 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
+                    className="w-full h-6 shadow-sm transition-all hover:border-gray-600 hover:cursor-pointer border border-black"
                     style={{
                       backgroundColor:
                         customSettings.backgroundColor || "white",
@@ -279,12 +280,12 @@ export default function Frames({
               </div>
             </div>
 
-            {/* Photo Rounded Corners - centered and properly spaced */}
+            {/* Photo Rounded Corners */}
             <div className="w-full">
               <span className="text-xs font-medium text-gray-600 mb-3 block text-center">
                 Photo Rounded Corners
               </span>
-              <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() =>
                     onCustomSettingsChange({
@@ -292,7 +293,7 @@ export default function Frames({
                       cornerRadius: "none",
                     })
                   }
-                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                  className={`w-full px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
                     customSettings.cornerRadius === "none"
                       ? "bg-black text-white border-black"
                       : "bg-white text-black border-gray-300 hover:border-gray-400"
@@ -307,7 +308,7 @@ export default function Frames({
                       cornerRadius: "sm",
                     })
                   }
-                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                  className={`w-full px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
                     customSettings.cornerRadius === "sm"
                       ? "bg-black text-white border-black"
                       : "bg-white text-black border-gray-300 hover:border-gray-400"
@@ -322,7 +323,7 @@ export default function Frames({
                       cornerRadius: "md",
                     })
                   }
-                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                  className={`w-full px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
                     customSettings.cornerRadius === "md"
                       ? "bg-black text-white border-black"
                       : "bg-white text-black border-gray-300 hover:border-gray-400"
@@ -337,7 +338,7 @@ export default function Frames({
                       cornerRadius: "lg",
                     })
                   }
-                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                  className={`w-full px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
                     customSettings.cornerRadius === "lg"
                       ? "bg-black text-white border-black"
                       : "bg-white text-black border-gray-300 hover:border-gray-400"
@@ -352,7 +353,7 @@ export default function Frames({
                       cornerRadius: "xl",
                     })
                   }
-                  className={`px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
+                  className={`w-full px-2 py-1.5 text-xs border transition-all hover:cursor-pointer ${
                     customSettings.cornerRadius === "xl"
                       ? "bg-black text-white border-black"
                       : "bg-white text-black border-gray-300 hover:border-gray-400"
@@ -370,8 +371,8 @@ export default function Frames({
         {/* Empty divs when custom is not selected to maintain consistent spacing */}
         {selected !== "custom" && (
           <>
-            <div className="w-32 h-10"></div>
-            <div className="w-32 h-10"></div>
+            <div className="w-full h-10"></div>
+            <div className="w-full h-10"></div>
           </>
         )}
       </div>
