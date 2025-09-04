@@ -2012,7 +2012,7 @@ export default function Page() {
                     .replace(/[:.]/g, "-")
                     .slice(0, 19);
                   link.href = dataUrl;
-                  link.download = `snappy-photostrip-${ts}.png`;
+                  link.download = `croumatic-photostrip-${ts}.png`;
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
@@ -2088,7 +2088,7 @@ export default function Page() {
                     .replace(/[:.]/g, "-")
                     .slice(0, 19);
                   link.href = dataUrl;
-                  link.download = `snappy-photostrip-${ts}.png`;
+                  link.download = `croumatic-photostrip-${ts}.png`;
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
