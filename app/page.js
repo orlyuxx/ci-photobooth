@@ -1406,11 +1406,12 @@ export default function Page() {
           </div>
           <h2
             className={
-              `fredoka text-sm sm:text-base md:text-lg text-purple-700 text-center transition-all duration-400 ease-out transform px-2` +
+              `fredoka text-sm sm:text-base md:text-lg text-purple-700 text-center transition-all duration-400 ease-out transform px-2 ` +
               (showCard
-                ? "opacity-100 translate-y-0 opacity-80"
+                ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8")
             }
+            style={{ opacity: showCard ? 0.8 : 0 }}
           >
             Capture it, remember it
           </h2>
