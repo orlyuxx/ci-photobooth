@@ -415,9 +415,13 @@ const createFilteredPhotoStrip = async (
         const stickerImg = new Image();
         stickerImg.onload = () => {
           const stickerSize = 30; // Match editor size exactly
-          // Position relative to the strip container, accounting for padding
-          const adjustedX = sticker.x;
-          const adjustedY = sticker.y + padding; // Account for top padding
+          
+          // Direct coordinate mapping - sticker.x and sticker.y are already 
+          // relative to the photostrip container in the editor
+          // We just need to center the photostrip in the canvas and add top padding
+          const horizontalOffset = (stripWidth - photoWidth) / 2;
+          const adjustedX = horizontalOffset + sticker.x;
+          const adjustedY = sticker.y + padding;
 
           ctx.drawImage(
             stickerImg,
