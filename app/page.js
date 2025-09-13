@@ -190,7 +190,7 @@ const getContrastingTextColor = (backgroundColor) => {
   return L > 0.5 ? "#111111" : "#FAFAFA";
 };
 
-// Updated createFilteredPhotoStrip function to match editor preview exactly
+// Updated createFilteredPhotoStrip function with high quality rendering
 const createFilteredPhotoStrip = async (
   capturedImages,
   selectedFilter,
@@ -204,13 +204,24 @@ const createFilteredPhotoStrip = async (
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
-  // Match the editor dimensions exactly
-  const stripWidth = 256; // 16rem = 256px (w-64)
-  const photoWidth = 224; // 14rem = 224px (w-56)
-  const photoHeight = 160; // 10rem = 160px (h-40)
-  const photoSpacing = 16; // 1rem = 16px (mb-4)
-  const padding = 24; // 1.5rem = 24px (py-6)
-  const messageSpace = stripMessage || showStripDate ? 120 : 40; // More space for message/date
+  // High-resolution scaling factor for crisp output
+  const scaleFactor = 4; // 4x resolution for high quality
+  
+  // Base dimensions (editor preview size)
+  const baseStripWidth = 256; // 16rem = 256px (w-64)
+  const basePhotoWidth = 224; // 14rem = 224px (w-56)
+  const basePhotoHeight = 160; // 10rem = 160px (h-40)
+  const basePhotoSpacing = 16; // 1rem = 16px (mb-4)
+  const basePadding = 24; // 1.5rem = 24px (py-6)
+  const baseMessageSpace = stripMessage || showStripDate ? 120 : 40;
+
+  // Scale up for high resolution
+  const stripWidth = baseStripWidth * scaleFactor;
+  const photoWidth = basePhotoWidth * scaleFactor;
+  const photoHeight = basePhotoHeight * scaleFactor;
+  const photoSpacing = basePhotoSpacing * scaleFactor;
+  const padding = basePadding * scaleFactor;
+  const messageSpace = baseMessageSpace * scaleFactor;
 
   canvas.width = stripWidth;
   canvas.height =
@@ -219,14 +230,22 @@ const createFilteredPhotoStrip = async (
     padding * 2 +
     messageSpace;
 
+  // Enable high-quality rendering
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.textRenderingOptimization = 'optimizeQuality';
+
   // Apply frame background
   const frameStyle = getFrameStyle(selectedFrame, customFrameSettings);
   ctx.fillStyle = frameStyle.background || "#ffffff";
 
+  // Scale border radius for high resolution
+  const scaledBorderRadius = (frameStyle.borderRadius || 0) * scaleFactor;
+
   // If there's a border radius, use roundRect instead of fillRect
-  if (frameStyle.borderRadius > 0) {
+  if (scaledBorderRadius > 0) {
     ctx.beginPath();
-    ctx.roundRect(0, 0, canvas.width, canvas.height, frameStyle.borderRadius);
+    ctx.roundRect(0, 0, canvas.width, canvas.height, scaledBorderRadius);
     ctx.fill();
   } else {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -236,7 +255,7 @@ const createFilteredPhotoStrip = async (
   if (frameStyle.border && frameStyle.border !== "none") {
     const borderWidth = parseInt(
       frameStyle.border.match(/(\d+)px/)?.[1] || "2"
-    );
+    ) * scaleFactor; // Scale border width
     const borderColor =
       frameStyle.border.match(
         /(#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}|[a-zA-Z]+)/
@@ -246,14 +265,14 @@ const createFilteredPhotoStrip = async (
     ctx.lineWidth = borderWidth;
 
     // Use roundRect for border if there's a border radius
-    if (frameStyle.borderRadius > 0) {
+    if (scaledBorderRadius > 0) {
       ctx.beginPath();
       ctx.roundRect(
         borderWidth / 2,
         borderWidth / 2,
         canvas.width - borderWidth,
         canvas.height - borderWidth,
-        Math.max(0, frameStyle.borderRadius - borderWidth / 2)
+        Math.max(0, scaledBorderRadius - borderWidth / 2)
       );
       ctx.stroke();
     } else {
@@ -266,11 +285,11 @@ const createFilteredPhotoStrip = async (
     }
   }
 
-  // Draw sprocket holes for film frame - FIXED to match editor exactly
+  // Draw sprocket holes for film frame - FIXED to match editor exactly with high resolution
   if (selectedFrame === "film") {
     ctx.fillStyle = "#ffffff";
-    const holeWidth = 8; // w-2 = 8px
-    const holeHeight = 12; // h-3 = 12px
+    const holeWidth = 8 * scaleFactor; // w-2 = 8px scaled
+    const holeHeight = 12 * scaleFactor; // h-3 = 12px scaled
 
     // Calculate exact spacing to match editor: 18 holes with even distribution
     const totalHoles = 18;
@@ -286,7 +305,7 @@ const createFilteredPhotoStrip = async (
       if (holeY >= 0 && holeY + holeHeight <= canvas.height) {
         // Left sprocket holes
         ctx.beginPath();
-        ctx.roundRect(0, holeY, holeWidth, holeHeight, 2);
+        ctx.roundRect(0, holeY, holeWidth, holeHeight, 2 * scaleFactor);
         ctx.fill();
 
         // Right sprocket holes
@@ -296,14 +315,14 @@ const createFilteredPhotoStrip = async (
           holeY,
           holeWidth,
           holeHeight,
-          2
+          2 * scaleFactor
         );
         ctx.fill();
       }
     }
   }
 
-  // Process each photo with exact editor styling
+  // Process each photo with exact editor styling and high resolution
   for (let i = 0; i < capturedImages.length; i++) {
     await new Promise((resolve) => {
       const img = new Image();
@@ -311,13 +330,17 @@ const createFilteredPhotoStrip = async (
         const y = padding + i * (photoHeight + photoSpacing);
         const x = (stripWidth - photoWidth) / 2; // Center photo exactly like editor
 
-        // Create temporary canvas for this photo to apply filter
+        // Create temporary canvas for this photo to apply filter - high resolution
         const tempCanvas = document.createElement("canvas");
         const tempCtx = tempCanvas.getContext("2d");
         tempCanvas.width = photoWidth;
         tempCanvas.height = photoHeight;
+        
+        // Enable high-quality rendering for temp canvas
+        tempCtx.imageSmoothingEnabled = true;
+        tempCtx.imageSmoothingQuality = 'high';
 
-        // Draw image to temp canvas
+        // Draw image to temp canvas with high quality
         tempCtx.drawImage(img, 0, 0, photoWidth, photoHeight);
 
         // Apply filter
@@ -325,8 +348,8 @@ const createFilteredPhotoStrip = async (
 
         // Draw the photo with frame-specific styling
         if (selectedFrame === "film") {
-          // For film frame: white border around photo
-          const borderWidth = 4;
+          // For film frame: white border around photo - scaled
+          const borderWidth = 4 * scaleFactor;
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(
             x - borderWidth,
@@ -335,10 +358,10 @@ const createFilteredPhotoStrip = async (
             photoHeight + borderWidth * 2
           );
 
-          // Add subtle shadow for the white border
+          // Add subtle shadow for the white border - scaled
           ctx.shadowColor = "rgba(0, 0, 0, 0.18)";
-          ctx.shadowBlur = 8;
-          ctx.shadowOffsetY = 2;
+          ctx.shadowBlur = 8 * scaleFactor;
+          ctx.shadowOffsetY = 2 * scaleFactor;
           ctx.fillRect(
             x - borderWidth,
             y - borderWidth,
@@ -352,8 +375,9 @@ const createFilteredPhotoStrip = async (
           // Draw filtered image
           ctx.drawImage(tempCanvas, x, y);
         } else if (selectedFrame === "modern") {
-          // For modern frame: light gray border and rounded corners
-          const borderWidth = 2;
+          // For modern frame: light gray border and rounded corners - scaled
+          const borderWidth = 2 * scaleFactor;
+          const cornerRadius = 4 * scaleFactor;
           ctx.fillStyle = "#e5e7eb";
           ctx.beginPath();
           ctx.roundRect(
@@ -361,25 +385,25 @@ const createFilteredPhotoStrip = async (
             y - borderWidth,
             photoWidth + borderWidth * 2,
             photoHeight + borderWidth * 2,
-            4
+            cornerRadius
           );
           ctx.fill();
 
           // Clip for rounded photo
           ctx.save();
           ctx.beginPath();
-          ctx.roundRect(x, y, photoWidth, photoHeight, 4);
+          ctx.roundRect(x, y, photoWidth, photoHeight, cornerRadius);
           ctx.clip();
           ctx.drawImage(tempCanvas, x, y);
           ctx.restore();
         } else if (selectedFrame === "custom") {
-          // Handle custom frame corner radius
+          // Handle custom frame corner radius - scaled
           const cornerRadiusMap = {
             none: 0,
-            sm: 4,
-            md: 8,
-            lg: 12,
-            xl: 16,
+            sm: 4 * scaleFactor,
+            md: 8 * scaleFactor,
+            lg: 12 * scaleFactor,
+            xl: 16 * scaleFactor,
           };
           const radius =
             cornerRadiusMap[customFrameSettings.cornerRadius || "none"];
@@ -405,7 +429,7 @@ const createFilteredPhotoStrip = async (
     });
   }
 
-  // Draw stickers exactly as they appear in the editor
+  // Draw stickers exactly as they appear in the editor with high resolution
   for (const sticker of placedStickers) {
     const stickerObj = stickersRef.current.find(
       (s) => s.id === sticker.stickerId
@@ -414,14 +438,14 @@ const createFilteredPhotoStrip = async (
       await new Promise((resolve) => {
         const stickerImg = new Image();
         stickerImg.onload = () => {
-          const stickerSize = 30; // Match editor size exactly
+          const stickerSize = 30 * scaleFactor; // Match editor size exactly but scaled
           
           // Direct coordinate mapping - sticker.x and sticker.y are already 
           // relative to the photostrip container in the editor
-          // We just need to center the photostrip in the canvas and add top padding
+          // Scale the coordinates for high resolution
           const horizontalOffset = (stripWidth - photoWidth) / 2;
-          const adjustedX = horizontalOffset + sticker.x;
-          const adjustedY = sticker.y + padding;
+          const adjustedX = horizontalOffset + (sticker.x * scaleFactor);
+          const adjustedY = (sticker.y * scaleFactor) + padding;
 
           ctx.drawImage(
             stickerImg,
@@ -437,15 +461,15 @@ const createFilteredPhotoStrip = async (
     }
   }
 
-  // Draw message and date exactly like editor
+  // Draw message and date exactly like editor with high resolution
   if (stripMessage || showStripDate) {
-    const textStartY = canvas.height - messageSpace + 20;
+    const textStartY = canvas.height - messageSpace + (20 * scaleFactor);
     const stripTextColor = getContrastingTextColor(frameStyle.background);
 
-    // Message with Cedarville Cursive font
+    // Message with Cedarville Cursive font - scaled
     if (stripMessage) {
       ctx.fillStyle = stripTextColor;
-      ctx.font = '16px "Cedarville Cursive", cursive';
+      ctx.font = `${16 * scaleFactor}px "Cedarville Cursive", cursive`;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
@@ -453,15 +477,15 @@ const createFilteredPhotoStrip = async (
       lines.forEach((line, i) => {
         if (line.trim()) {
           // Only draw non-empty lines
-          ctx.fillText(line.trim(), canvas.width / 2, textStartY + i * 20);
+          ctx.fillText(line.trim(), canvas.width / 2, textStartY + (i * 20 * scaleFactor));
         }
       });
     }
 
-    // Date
+    // Date - scaled
     if (showStripDate) {
       ctx.fillStyle = stripTextColor;
-      ctx.font = "12px Arial, sans-serif";
+      ctx.font = `${12 * scaleFactor}px Arial, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       const dateStr = new Date().toLocaleDateString("en-US", {
@@ -469,7 +493,7 @@ const createFilteredPhotoStrip = async (
         day: "2-digit",
         year: "numeric",
       });
-      ctx.fillText(dateStr, canvas.width / 2, canvas.height - 20);
+      ctx.fillText(dateStr, canvas.width / 2, canvas.height - (20 * scaleFactor));
     }
   }
 
@@ -840,45 +864,58 @@ export default function Page() {
     return "";
   };
 
-  // Capture logic
-  const handleCapture = async () => {
-    if (!cameraActive || !videoRef.current) return;
-    setIsCapturing(true);
-    setCapturedImages([]);
-    setAnimatedPreviews([]);
-    const images = [];
-    for (let i = 0; i < settings.numberOfPhotos; i++) {
-      // Countdown
-      for (let t = settings.timerDuration; t > 0; t--) {
-        setCountdown(t);
-        await new Promise((res) => setTimeout(res, 1000));
-      }
-      setCountdown(null);
-      // Capture frame
-      const video = videoRef.current;
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      // Mirror horizontally to match preview
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
-      images.push(dataUrl);
-      setCapturedImages((prev) => [...prev, dataUrl]);
-      setShowCaptureEffect(true);
-      setTimeout(() => setShowCaptureEffect(false), 250); // flash duration
-      setTimeout(() => {
-        setAnimatedPreviews((prev) => [...prev, i]);
-      }, 100); // trigger preview animation after capture
-      // Small pause between shots (optional)
-      if (i < settings.numberOfPhotos - 1) {
-        await new Promise((res) => setTimeout(res, 500));
-      }
+ // Capture logic with high resolution
+const handleCapture = async () => {
+  if (!cameraActive || !videoRef.current) return;
+  setIsCapturing(true);
+  setCapturedImages([]);
+  setAnimatedPreviews([]);
+  const images = [];
+  for (let i = 0; i < settings.numberOfPhotos; i++) {
+    // Countdown
+    for (let t = settings.timerDuration; t > 0; t--) {
+      setCountdown(t);
+      await new Promise((res) => setTimeout(res, 1000));
     }
-    setIsCapturing(false);
-  };
+    setCountdown(null);
+    // Capture frame at high resolution
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    
+    // Use higher resolution for better quality
+    // Get the actual video dimensions for best quality
+    const videoWidth = video.videoWidth || video.clientWidth;
+    const videoHeight = video.videoHeight || video.clientHeight;
+    
+    canvas.width = videoWidth;
+    canvas.height = videoHeight;
+    const ctx = canvas.getContext("2d");
+    
+    // Enable high-quality rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    
+    // Mirror horizontally to match preview
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Use higher quality JPEG compression
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+    images.push(dataUrl);
+    setCapturedImages((prev) => [...prev, dataUrl]);
+    setShowCaptureEffect(true);
+    setTimeout(() => setShowCaptureEffect(false), 250); // flash duration
+    setTimeout(() => {
+      setAnimatedPreviews((prev) => [...prev, i]);
+    }, 100); // trigger preview animation after capture
+    // Small pause between shots (optional)
+    if (i < settings.numberOfPhotos - 1) {
+      await new Promise((res) => setTimeout(res, 500));
+    }
+  }
+  setIsCapturing(false);
+};
 
   // Animate in new preview images elegantly
   useEffect(() => {
