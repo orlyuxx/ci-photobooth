@@ -2045,7 +2045,36 @@ export default function Page() {
             showEditorAnim={showEditorAnim}
             onSettingsOpen={handleSettingsOpen}
             onDownload={async () => {
-              // ... existing download logic
+              if (capturedImages.length === 0) return;
+              
+              try {
+                // Use the existing createFilteredPhotoStrip function to generate the image
+                const dataUrl = await createFilteredPhotoStrip(
+                  capturedImages,
+                  selectedFilter,
+                  selectedFrame,
+                  customFrameSettings,
+                  stripMessage,
+                  showStripDate,
+                  placedStickers,
+                  stickersRef
+                );
+                
+                // Create download link
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = `croumatic-photostrip-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+              } catch (error) {
+                console.error('Download failed:', error);
+                // Optionally show user feedback
+                alert('Download failed. Please try again.');
+              }
             }}
             onPrint={async () => {
               // ... existing print logic
